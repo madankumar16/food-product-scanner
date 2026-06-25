@@ -1,294 +1,169 @@
-# 🍎 Food Product Scanner
+# 🍎 Worldwide Food Product Scanner App
 
-A comprehensive AI-powered food product analysis system that scans products, identifies ingredients, classifies them, and provides health impact assessments with safety ratings.
+A production-grade, AI-powered food product scanner system combining a robust **Python Flask Backend** (leveraging Tesseract OCR, pyzbar, and Gemini 2.5 Flash AI) with a premium **Flutter Mobile Application** featuring offline caching, scan history, favorites, and real-time allergen/dietary warning alerts.
 
-![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)
-![Flask](https://img.shields.io/badge/Flask-3.0+-green.svg)
-![Gemini AI](https://img.shields.io/badge/Gemini-2.5%20Flash-orange.svg)
-![License](https://img.shields.io/badge/License-MIT-yellow.svg)
-
-## ✨ Features
-
-### 🔍 Scanning Methods
-- **📷 Live Camera Scan**: Real-time camera capture with live feed
-- **📁 Image Upload**: Drag & drop or browse file upload
-- **🖼️ Image Preview**: See selected images before scanning
-- **📸 Instant Analysis**: Get results in 2-5 seconds
-
-### 🤖 AI-Powered Analysis
-- **🧠 Gemini 2.5 Flash AI**: Google's latest AI model
-- **📊 Product Classification**: Automatic category detection
-- **🌱 Dietary Analysis**: Vegan/Vegetarian/Gluten-Free status
-- **⚠️ Allergen Detection**: Smart allergen identification
-- **💪 Health Benefits**: Nutritional benefits analysis
-- **🎯 Expert Recommendations**: Usage and storage guidelines
-
-### 📊 Results & Reports
-- **🎨 Beautiful Modal Display**: Professional results interface
-- **📄 PDF Reports**: Downloadable comprehensive analysis
-- **💾 Scan History**: Track all previous scans
-- **📈 Safety Scoring**: Color-coded safety ratings (GREEN/YELLOW/RED)
-- **⚠️ Health Warnings**: Detailed health concerns
-
-### 🎨 UI/UX Features
-- **🌟 Modern Design**: Clean white and light blue theme
-- **📱 Responsive Layout**: Works on all devices
-- **🔄 Smooth Animations**: Professional transitions
-- **🎯 Intuitive Interface**: Easy to use
-- **📊 Real-time Updates**: Live scanning feedback
-
-## 🚀 Quick Start
-
-### Prerequisites
-
-- Python 3.8 or higher
-- pip (Python package manager)
-- Tesseract OCR (optional, for enhanced text extraction)
-
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/yourusername/food-product-scanner.git
-   cd food-product-scanner
-   ```
-
-2. **Create virtual environment** (recommended)
-   ```bash
-   python -m venv venv
-   
-   # Windows
-   venv\Scripts\activate
-   
-   # macOS/Linux
-   source venv/bin/activate
-   ```
-
-3. **Install dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. **Set up environment variables**
-   ```bash
-   # Copy the example file
-   copy .env.example .env
-   
-   # Edit .env and add your Gemini API key
-   # Get your API key from: https://makersuite.google.com/app/apikey
-   ```
-
-5. **Run the application**
-   ```bash
-   python app.py
-   ```
-
-6. **Open your browser**
-   ```
-   http://localhost:5000
-   ```
-
-## 🔑 API Keys Setup
-
-### Gemini AI API Key (Required)
-
-1. Visit [Google AI Studio](https://makersuite.google.com/app/apikey)
-2. Sign in with your Google account
-3. Click "Create API Key"
-4. Copy the key
-5. Add to `.env` file:
-   ```env
-   GEMINI_API_KEY=your-api-key-here
-   ```
-
-See [ENV_SETUP_GUIDE.md](ENV_SETUP_GUIDE.md) for detailed instructions.
-
-## 📖 Usage
-
-### Upload Image Method
-
-1. Click "Upload Image" option
-2. Drag & drop or browse for food product image
-3. Click "Start Scan"
-4. View comprehensive results in modal
-5. Download PDF report (optional)
-
-### Camera Method
-
-1. Click "Camera Scan" option
-2. Allow camera permission when prompted
-3. Point camera at product label
-4. Click "Capture & Scan"
-5. View instant AI analysis
-
-### Results Include
-
-- Product name and brand
-- Complete ingredients list
-- Vegetarian/vegan status
-- Safety rating (0-100 score)
-- Health warnings
-- Allergen information
-- AI-powered recommendations
-- Downloadable PDF report
-
-## 🏗️ Project Structure
-
-```
-food-product-scanner/
-├── app.py                      # Flask web application
-├── food_scanner.py             # Core scanning logic
-├── gemini_25_ai.py            # Gemini 2.5 Flash AI
-├── enhanced_gemini_ai.py      # Enhanced AI module
-├── gemini_ai.py               # AI analysis module
-├── config.py                  # Configuration
-├── camera_handler.py          # Camera interface
-├── barcode_handler.py         # Barcode detection
-├── ocr_handler.py             # Text extraction
-├── pdf_generator.py           # PDF reports
-├── product_database.py        # Product lookup
-├── requirements.txt           # Dependencies
-├── .env.example               # Environment template
-├── templates/                 # HTML templates
-│   ├── dashboard.html
-│   ├── history.html
-│   ├── profile.html
-│   └── scan_details.html
-├── static/                    # Static assets
-│   ├── css/
-│   └── js/
-└── docs/                      # Documentation
-```
-
-## 🛠️ Technologies Used
-
-### Backend
-- **Flask** - Web framework
-- **Gemini 2.5 Flash** - Google's AI model
-- **OpenCV** - Image processing
-- **ReportLab** - PDF generation
-- **Pillow** - Image handling
-- **python-dotenv** - Environment variables
-
-### Frontend
-- **HTML5** - Modern markup
-- **CSS3** - Styling with animations
-- **JavaScript** - Interactive functionality
-- **WebRTC** - Browser camera access
-
-## 📊 Features in Detail
-
-### Product Analysis
-- Automatic product identification
-- Brand recognition
-- Category classification
-- Barcode scanning (if visible)
-
-### Ingredient Analysis
-- Complete ingredient list extraction
-- Ingredient categorization
-- Natural vs artificial classification
-- Processing level assessment
-
-### Health Analysis
-- Allergen detection
-- Health risk assessment
-- Dietary suitability
-- Nutritional insights
-
-### Safety Rating
-- **GREEN (80-100)**: Safe for consumption
-- **YELLOW (60-79)**: Moderate concerns
-- **RED (0-59)**: High health concerns
-
-## 📄 Documentation
-
-- [Complete Setup Guide](README_FINAL.md)
-- [Environment Variables Guide](ENV_SETUP_GUIDE.md)
-- [API Key Setup](API_KEYS_SETUP.md)
-- [PDF Download Guide](PDF_DOWNLOAD_GUIDE.md)
-- [Gemini AI Configuration](GEMINI_FIXED.md)
-- [Project Summary](PROJECT_SUMMARY.md)
-
-## 🧪 Testing
-
-Run the diagnostic test:
-```bash
-python test_scanner.py
-```
-
-Test the scanner endpoint:
-```bash
-# Open in browser
-http://localhost:5000/test/scanner
-```
-
-## 🔒 Security
-
-- API keys stored in `.env` file (not committed to Git)
-- `.gitignore` configured to protect sensitive data
-- Session-based security
-- Input validation and sanitization
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- Google Gemini AI for powerful product analysis
-- Flask community for excellent web framework
-- ReportLab for PDF generation
-- OpenCV for image processing
-
-## 📞 Support
-
-For issues, questions, or suggestions:
-- Open an issue on GitHub
-- Check the documentation in the `docs/` folder
-- Review the troubleshooting guides
-
-## 🎯 Roadmap
-
-- [ ] Add database for persistent storage
-- [ ] Implement user authentication (optional)
-- [ ] Add more AI models for comparison
-- [ ] Mobile app support
-- [ ] Multi-language support
-- [ ] Barcode database integration
-- [ ] Nutrition facts extraction
-- [ ] Recipe suggestions
-
-## ⚡ Performance
-
-- **Analysis Speed**: 2-5 seconds
-- **Accuracy**: Very high with Gemini 2.5 Flash
-- **Supported Formats**: JPG, JPEG, PNG
-- **Max Image Size**: 10MB
-
-## 🌟 Screenshots
-
-### Dashboard
-![Dashboard](docs/screenshots/dashboard.png)
-
-### Scan Results
-![Results](docs/screenshots/results.png)
-
-### PDF Report
-![PDF Report](docs/screenshots/pdf-report.png)
+[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/)
+[![Flask](https://img.shields.io/badge/Flask-3.0+-green.svg)](https://flask.palletsprojects.com/)
+[![Flutter](https://img.shields.io/badge/Flutter-3.0+-cyan.svg)](https://flutter.dev/)
+[![Vercel Deployment](https://img.shields.io/badge/Vercel-Deployed-black.svg)](https://food-product-scanner-main.vercel.app)
+[![Gemini AI](https://img.shields.io/badge/Gemini-2.5%20Flash-orange.svg)](https://deepmind.google/technologies/gemini/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ---
 
-**Made with ❤️ using Flask and Gemini AI**
+## 🌟 Key Features
 
-*Last Updated: January 7, 2026*
+### 1. Multi-Platform Scanning Options
+* **Web Dashboard**: HTML5 browser-based camera scanning utilizing `html5-qrcode`, as well as drag-and-drop file uploads.
+* **Flutter Mobile App**: Real-time camera scanning via `mobile_scanner`, featuring a manual barcode lookup and emulator-friendly test buttons.
+
+### 2. Category-Aware Nutri-Score (FSA-NPS 2023+ Updated)
+* Auto-detects product categories (Beverages, Cheese, Red Meat, Fats/Oils/Nuts, and General Foods) from Open Food Facts `categories_tags`.
+* Implements official category-specific logic:
+  - **Red Meat**: Hard cap of `2` points on positive protein contribution.
+  - **Cheese**: Bypass negative points limit ($\ge 11$) to ensure protein is always counted.
+
+### 3. Allergen & Dietary Alert System
+* User profile configurations for dietary requirements (Vegan, Vegetarian) and common allergens (Gluten, Dairy, Peanuts, Nuts, Eggs, Soy, Fish, Shellfish).
+* Real-time warning checks on scans displaying prominent warning banners if violations are detected.
+
+### 4. Offline-Friendly Caching & Favorites
+* Persists scan history and favorite product logs locally on mobile devices using `shared_preferences` for offline lookup.
+
+### 5. AI-Powered Expert Analysis
+* Integrated Gemini 2.5 Flash API to parse raw ingredients list, analyze health impacts, compile health benefits, and output storage/consumption advice.
+
+---
+
+## 📂 Project Architecture
+
+```text
+├── app.py                     # Flask web server & REST API endpoints
+├── food_scanner.py            # OCR, barcode processing, and Gemini AI pipeline
+├── nutriscore.py              # Category-aware Nutri-Score calculation module
+├── product_database.py        # Open Food Facts API client
+├── config.py                  # Environment config resolver
+├── requirements.txt           # Python backend dependencies
+├── Dockerfile                 # Backend containerization Dockerfile
+├── docker-compose.yml         # Containerized development composer
+├── static/ & templates/       # Web dashboard assets and markup
+├── food_scanner_mobile/       # Flutter Mobile Application
+│   ├── pubspec.yaml           # Flutter packages config
+│   ├── lib/
+│   │   ├── main.dart          # Mobile app boots & bottom nav shell
+│   │   ├── models/            # Product JSON parsers
+│   │   ├── services/          # Local persistence (SharedPreferences) & API clients
+│   │   ├── widgets/           # Nutri-Score graphic badges
+│   │   └── screens/           # Scan, Search, History, and Profile views
+│   └── README.md              # Flutter installation guide
+├── GCP_DEPLOY_GUIDE.md        # Cloud Run hosting instructions
+└── GITHUB_PUSH_GUIDE.md       # Git version control push manual
+```
+
+---
+
+## 🚀 Local Installation & Setup
+
+### Part A: Python Flask Backend
+
+1. **Clone the repository and enter the directory**:
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/worldwide-food-scanner.git
+   cd worldwide-food-scanner
+   ```
+
+2. **Set up a Virtual Environment**:
+   ```bash
+   python -m venv venv
+   source venv/bin/activate       # On Linux/macOS
+   # venv\Scripts\activate        # On Windows
+   ```
+
+3. **Install Dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+   *Note: If running OCR locally, make sure to install [Tesseract OCR](https://github.com/tesseract-ocr/tesseract) on your system.*
+
+4. **Environment Variables**:
+   Copy `.env.example` to `.env` and fill in your Google Gemini AI API key:
+   ```bash
+   copy .env.example .env          # Windows
+   # cp .env.example .env          # Linux/macOS
+   ```
+   Edit `.env`:
+   ```env
+   GEMINI_API_KEY=your_gemini_api_key_here
+   ```
+
+5. **Start Flask Server**:
+   ```bash
+   python app.py
+   ```
+   Open your browser to `http://localhost:5000` to view the web dashboard.
+
+---
+
+### Part B: Flutter Mobile Application
+
+1. **Enter the mobile project directory**:
+   ```bash
+   cd food_scanner_mobile
+   ```
+
+2. **Fetch Flutter Dependencies**:
+   ```bash
+   flutter pub get
+   ```
+
+3. **Configure API Endpoint**:
+   Open `lib/services/api_service.dart`. By default, it is configured for the Android Emulator (`http://10.0.2.2:5000`). If testing on iOS Simulator, update to `http://localhost:5000`.
+
+4. **Run the App**:
+   Launch your emulator and execute:
+   ```bash
+   flutter run
+   ```
+   *Tip: Use the **Quick Simulator** buttons on the Scan tab to easily test results without a physical camera.*
+
+---
+
+## 🐳 Containerization with Docker
+
+You can run the backend services in an isolated environment with Tesseract, OpenCV, and ZBar pre-installed:
+
+```bash
+# Build and run using Docker Compose
+docker-compose up --build -d
+
+# Check runtime logs
+docker-compose logs -f
+
+# Shut down container
+docker-compose down
+```
+
+---
+
+## 🌐 Deploying the Backend
+
+### Option 1: Vercel Serverless (Basic Hosting)
+The backend is configured for Vercel using [vercel.json](vercel.json).
+* **Live Deployment**: [https://food-product-scanner-main.vercel.app](https://food-product-scanner-main.vercel.app)
+* *Note: Vercel is best suited for dashboard serving and manual calculation routes. Tesseract OCR and Barcode decoding are not supported on Vercel due to system binary restrictions.*
+
+### Option 2: Google Cloud Run (Recommended for Full Features)
+Deploy the containerized backend to Google Cloud Run to enable full image scanning and OCR capabilities:
+1. Ensure the `gcloud` CLI is logged in.
+2. Run the deployment script:
+   ```bash
+   ./deploy_gcp.sh      # On Linux/macOS
+   # deploy_gcp.bat     # On Windows
+   ```
+3. Set your `GEMINI_API_KEY` under the Cloud Run Service Variables tab in the Google Cloud Console.
+4. For step-by-step instructions, see the [GCP Deployment Guide](GCP_DEPLOY_GUIDE.md).
+
+---
+
+## 📄 License
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
