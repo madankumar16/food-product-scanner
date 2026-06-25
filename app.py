@@ -31,15 +31,15 @@ if hasattr(sys.stderr, 'reconfigure'):
 from datetime import datetime
 from io import BytesIO
 
+app = Flask(__name__)
+
 # Import configuration
 try:
     from config import Config
-    app = Flask(__name__)
-    app.secret_key = Config.SECRET_KEY
+    app.secret_key = Config.SERVICE_SECRET_KEY if hasattr(Config, 'SERVICE_SECRET_KEY') else getattr(Config, 'SECRET_KEY', os.urandom(24))
     app.config['DEBUG'] = Config.DEBUG
 except ImportError:
     # Fallback if config not available
-    app = Flask(__name__)
     app.secret_key = os.urandom(24)
     app.config['DEBUG'] = True
 

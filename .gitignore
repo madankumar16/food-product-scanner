@@ -63,3 +63,5 @@ htmlcov/
 # Uploaded images
 uploads/
 temp/
+
+.vercel
