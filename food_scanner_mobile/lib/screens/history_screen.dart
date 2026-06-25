@@ -1,0 +1,342 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../services/product_provider.dart';
+import 'product_detail_screen.dart';
+
+class HistoryScreen extends StatelessWidget {
+  const HistoryScreen({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        backgroundColor: const Color(0xFF0F172A), // Dark slate
+        appBar: AppBar(
+          backgroundColor: const Color(0xFF1E293B),
+          elevation: 0,
+          title: const Text(
+            'Scans & Favorites',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          bottom: const TabBar(
+            labelColor: Color(0xFF38BDF8), // Light blue neon
+            unselectedLabelColor: Colors.white60,
+            indicatorColor: Color(0xFF38BDF8),
+            tabs: [
+              Tab(icon: Icon(Icons.history), text: 'History'),
+              Tab(icon: Icon(Icons.favorite), text: 'Favorites'),
+            ],
+          ),
+        ),
+        body: const TabBarView(
+          children: [
+            HistoryTab(),
+            FavoritesTab(),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class HistoryTab extends StatelessWidget {
+  const HistoryTab({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final provider = Provider.of<ProductProvider>(context);
+
+    if (provider.isLoading) {
+      return const Center(child: CircularProgressIndicator(color: Color(0xFF38BDF8)));
+    }
+
+    if (provider.history.isEmpty) {
+      return const EmptyStatePlaceholder(
+        icon: Icons.qr_code_scanner,
+        message: 'No scan history yet.\nTry scanning some barcodes!',
+      );
+    }
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.between,
+            children: [
+              Text(
+                '${provider.history.length} products scanned',
+                style: const TextStyle(color: Colors.white60, fontSize: 13),
+              ),
+              TextButton.icon(
+                onPressed: () => _confirmClear(context, provider, true),
+                icon: const Icon(Icons.delete_sweep, color: Colors.redAccent, size: 18),
+                label: const Text('Clear All', style: TextStyle(color: Colors.redAccent)),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: ListView.builder(
+            itemCount: provider.history.length,
+            padding: const EdgeInsets.only(bottom: 24),
+            itemBuilder: (context, index) {
+              final product = provider.history[index];
+              return Dismissible(
+                key: Key('hist_${product.barcode}_$index'),
+                direction: DismissDirection.endToStart,
+                background: Container(
+                  alignment: Alignment.centerRight,
+                  padding: const EdgeInsets.only(right: 20),
+                  color: Colors.redAccent,
+                  child: const Icon(Icons.delete, color: Colors.white),
+                ),
+                onDismissed: (direction) {
+                  provider.removeFromHistory(product.barcode);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('${product.name} removed from history')),
+                  );
+                },
+                child: ProductListTile(product: product),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class FavoritesTab extends StatelessWidget {
+  const FavoritesTab({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final provider = Provider.of<ProductProvider>(context);
+
+    if (provider.isLoading) {
+      return const Center(child: CircularProgressIndicator(color: Color(0xFF38BDF8)));
+    }
+
+    if (provider.favorites.isEmpty) {
+      return const EmptyStatePlaceholder(
+        icon: Icons.favorite_border,
+        message: 'No favorites added yet.\nTap the heart icon on any product!',
+      );
+    }
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.between,
+            children: [
+              Text(
+                '${provider.favorites.length} products favorited',
+                style: const TextStyle(color: Colors.white60, fontSize: 13),
+              ),
+              TextButton.icon(
+                onPressed: () => _confirmClear(context, provider, false),
+                icon: const Icon(Icons.favorite_border, color: Colors.redAccent, size: 18),
+                label: const Text('Remove All', style: TextStyle(color: Colors.redAccent)),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: ListView.builder(
+            itemCount: provider.favorites.length,
+            padding: const EdgeInsets.only(bottom: 24),
+            itemBuilder: (context, index) {
+              final product = provider.favorites[index];
+              return Dismissible(
+                key: Key('fav_${product.barcode}_$index'),
+                direction: DismissDirection.endToStart,
+                background: Container(
+                  alignment: Alignment.centerRight,
+                  padding: const EdgeInsets.only(right: 20),
+                  color: Colors.redAccent,
+                  child: const Icon(Icons.heart_broken, color: Colors.white),
+                ),
+                onDismissed: (direction) {
+                  provider.toggleFavorite(product);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('${product.name} removed from favorites')),
+                  );
+                },
+                child: ProductListTile(product: product),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class ProductListTile extends StatelessWidget {
+  final dynamic product;
+
+  const ProductListTile({Key? key, required this.product}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    Color safetyColor;
+    switch (product.safetyColor.toString().toUpperCase()) {
+      case 'GREEN':
+        safetyColor = Colors.greenAccent.shade400;
+        break;
+      case 'YELLOW':
+        safetyColor = Colors.yellowAccent.shade400;
+        break;
+      case 'RED':
+        safetyColor = Colors.redAccent;
+        break;
+      default:
+        safetyColor = Colors.grey;
+    }
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      color: const Color(0xFF1E293B),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ListTile(
+        contentPadding: const EdgeInsets.all(12),
+        leading: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: product.imageUrl != null && product.imageUrl!.isNotEmpty
+              ? Image.network(
+                  product.imageUrl!,
+                  width: 50,
+                  height: 50,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) =>
+                      const Icon(Icons.fastfood, color: Colors.white54, size: 30),
+                )
+              : const Icon(Icons.fastfood, color: Colors.white54, size: 30),
+        ),
+        title: Text(
+          product.name,
+          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 4),
+            Text(product.brand, style: const TextStyle(color: Colors.white60, fontSize: 13)),
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                Container(
+                  width: 10,
+                  height: 10,
+                  decoration: BoxDecoration(color: safetyColor, shape: BoxShape.circle),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  'Safety: ${product.safetyScore}/100',
+                  style: TextStyle(color: safetyColor, fontSize: 12, fontWeight: FontWeight.bold),
+                ),
+                if (product.nutriscore != null) ...[
+                  const SizedBox(width: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.white10,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      'Nutri-Score: ${product.nutriscore}',
+                      style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ]
+              ],
+            )
+          ],
+        ),
+        trailing: const Icon(Icons.chevron_right, color: Colors.white30),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ProductDetailScreen(product: product),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class EmptyStatePlaceholder extends StatelessWidget {
+  final IconData icon;
+  final String message;
+
+  const EmptyStatePlaceholder({
+    Key? key,
+    required this.icon,
+    required this.message,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 64, color: Colors.white24),
+          const SizedBox(height: 16),
+          Text(
+            message,
+            textAlign: Center,
+            style: const TextStyle(color: Colors.white30, fontSize: 15, height: 1.4),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+void _confirmClear(BuildContext context, ProductProvider provider, bool isHistory) {
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      backgroundColor: const Color(0xFF1E293B),
+      title: Text(
+        isHistory ? 'Clear Scan History?' : 'Clear Favorites?',
+        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+      ),
+      content: Text(
+        isHistory
+            ? 'Are you sure you want to delete all scanned products?'
+            : 'Are you sure you want to remove all favorited products?',
+        style: const TextStyle(color: Colors.white70),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel', style: TextStyle(color: Colors.white60)),
+        ),
+        TextButton(
+          onPressed: () {
+            if (isHistory) {
+              provider.clearHistory();
+            } else {
+              provider.clearFavorites();
+            }
+            Navigator.pop(context);
+          },
+          child: const Text('Clear All', style: TextStyle(color: Colors.redAccent)),
+        ),
+      ],
+    ),
+  );
+}
