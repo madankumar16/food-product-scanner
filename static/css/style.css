@@ -360,3 +360,30 @@ body {
     }
 }
 
+/* Modern Dashboard Layout Grid */
+.main-layout-grid {
+    display: grid;
+    grid-template-columns: 2.2fr 1fr;
+    gap: 32px;
+    margin-top: 24px;
+}
+
+.main-content-area {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.sidebar-area {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+@media (max-width: 1024px) {
+    .main-layout-grid {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+}
+

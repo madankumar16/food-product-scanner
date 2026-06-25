@@ -32,37 +32,41 @@
     display: flex;
     align-items: center;
     gap: 16px;
-    padding: 20px;
-    border: 2px solid var(--gray-200);
+    padding: 16px 20px;
+    border: 1px solid var(--border-color);
     border-radius: 12px;
     cursor: pointer;
-    transition: all 0.3s ease;
-    background: var(--gray-50);
+    background: var(--surface-color);
 }
 
 .scan-option:hover {
-    border-color: var(--primary-blue);
-    background: var(--primary-blue-light);
+    border-color: var(--primary);
+    background: var(--primary-light);
     transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
 }
 
 .scan-option.active {
-    border-color: var(--primary-blue);
-    background: var(--primary-blue-light);
-    box-shadow: 0 0 0 4px rgba(74, 144, 226, 0.1);
+    border-color: var(--primary);
+    background: var(--primary-light);
+    box-shadow: 0 0 0 4px rgba(0, 179, 107, 0.1);
 }
 
 .option-icon {
-    font-size: 32px;
-    width: 56px;
-    height: 56px;
+    width: 44px;
+    height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: white;
-    border-radius: 12px;
-    box-shadow: var(--shadow-sm);
+    background: var(--gray-100);
+    border-radius: 8px;
+    color: var(--text-secondary);
+    transition: all 0.3s ease;
+}
+
+.scan-option:hover .option-icon,
+.scan-option.active .option-icon {
+    background: var(--primary);
+    color: white;
 }
 
 .option-content h3 {
@@ -126,7 +130,7 @@
 .manual-form textarea:focus {
     outline: none;
     border-color: var(--primary-blue);
-    box-shadow: 0 0 0 4px rgba(74, 144, 226, 0.1);
+    box-shadow: 0 0 0 4px rgba(0, 179, 107, 0.1);
 }
 
 .manual-form textarea {
@@ -430,7 +434,7 @@
     outline: none;
     border-color: var(--primary-blue);
     background: var(--white);
-    box-shadow: 0 0 0 4px rgba(74, 144, 226, 0.15), inset 0 2px 4px rgba(0, 0, 0, 0.005);
+    box-shadow: 0 0 0 4px rgba(0, 179, 107, 0.15), inset 0 2px 4px rgba(0, 0, 0, 0.005);
 }
 
 .form-group-calc input::placeholder {
@@ -457,7 +461,7 @@
 
 #runCalcBtn:hover {
     transform: translateY(-1px);
-    box-shadow: 0 8px 20px rgba(74, 144, 226, 0.25);
+    box-shadow: 0 8px 20px rgba(0, 179, 107, 0.25);
 }
 
 
