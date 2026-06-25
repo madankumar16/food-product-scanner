@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>History - Food Product Scanner</title>
+    <title>Foodscanner Vercel App</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
 </head>
 <body>
     <nav class="navbar">
         <a href="{{ url_for('dashboard') }}" class="navbar-brand">
-            <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
-                <rect width="48" height="48" rx="12" fill="#4A90E2"/>
-                <path d="M24 12L28 20H36L30 26L32 34L24 30L16 34L18 26L12 20H20L24 12Z" fill="white"/>
+            <svg width="32" height="32" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="48" height="48" rx="12" fill="#0d9488"/>
+                <path d="M24 14V34M14 24H34" stroke="white" stroke-width="4" stroke-linecap="round"/>
             </svg>
-            <span>Food Scanner</span>
+            <span>Foodscanner</span>
         </a>
         <div class="navbar-menu">
             <a href="{{ url_for('dashboard') }}" class="navbar-link">Dashboard</a>
