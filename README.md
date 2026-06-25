@@ -1,6 +1,6 @@
-# 🍎 Worldwide Food Product Scanner App
+# 🌿 Foodscanner Vercel App
 
-A production-grade, AI-powered food product scanner system combining a robust **Python Flask Backend** (leveraging Tesseract OCR, pyzbar, and Gemini 2.5 Flash AI) with a premium **Flutter Mobile Application** featuring offline caching, scan history, favorites, and real-time allergen/dietary warning alerts.
+A production-grade, AI-powered food product scanner system tailored with a clinical, minimalistic design. It combines a robust **Python Flask Backend** (leveraging Tesseract OCR, pyzbar, and Gemini 2.5 Flash AI) with a premium **Flutter Mobile Application** featuring offline caching, scan history, favorites, and real-time allergen/dietary warning alerts.
 
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/)
 [![Flask](https://img.shields.io/badge/Flask-3.0+-green.svg)](https://flask.palletsprojects.com/)
