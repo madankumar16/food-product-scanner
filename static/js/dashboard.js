@@ -5,9 +5,36 @@ let scanHistory = [];
 let uploadedImage = null;
 
 document.addEventListener('DOMContentLoaded', function() {
+    initializeThemeToggle();
     initializeDashboard();
     initializeImageUpload();
+    updateFavoritesGrid();
 });
+
+function initializeThemeToggle() {
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    const themeToggleIcon = document.getElementById('themeToggleIcon');
+    if (!themeToggleBtn) return;
+    
+    // Load saved theme
+    const savedTheme = localStorage.getItem('theme');
+    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    
+    if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
+        document.body.classList.add('dark');
+        themeToggleIcon.textContent = '☀️';
+    } else {
+        document.body.classList.remove('dark');
+        themeToggleIcon.textContent = '🌙';
+    }
+    
+    themeToggleBtn.addEventListener('click', function() {
+        document.body.classList.toggle('dark');
+        const isDark = document.body.classList.contains('dark');
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        themeToggleIcon.textContent = isDark ? '☀️' : '🌙';
+    });
+}
 
 function initializeDashboard() {
     // Scan option selection
@@ -63,7 +90,7 @@ function initializeDashboard() {
     if (submitBarcodeBtn) {
         submitBarcodeBtn.addEventListener('click', handleManualBarcodeScan);
     }
-
+    
     // Run Nutri-Score Calculator Button
     const runCalcBtn = document.getElementById('runCalcBtn');
     if (runCalcBtn) {
@@ -76,9 +103,32 @@ function initializeDashboard() {
         stopCameraBtn.addEventListener('click', stopLiveCamera);
     }
 
+    // Quick search in navbar
+    const navSearchInput = document.getElementById('navSearchInput');
+    if (navSearchInput) {
+        navSearchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const barcode = this.value.trim();
+                if (barcode) {
+                    performBarcodeLookup(barcode);
+                    this.value = '';
+                }
+            }
+        });
+    }
+
     // Load last scan if available
     loadLastScan();
     updateStats();
+
+    // Check if there is a search query parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const searchQuery = urlParams.get('search');
+    if (searchQuery) {
+        performBarcodeLookup(searchQuery);
+        // Clear parameter from URL bar to prevent lookup on reload
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
 }
 
 function initializeImageUpload() {
@@ -231,19 +281,9 @@ async function handleImageUploadScan() {
     }
 }
 
-async function handleManualBarcodeScan() {
-    const submitBarcodeBtn = document.getElementById('submitBarcodeBtn');
-    const barcodeInput = document.getElementById('barcodeInput');
+async function performBarcodeLookup(barcode) {
     const loadingOverlay = document.getElementById('loadingOverlay');
-    
-    const barcode = barcodeInput.value.trim();
-    if (!barcode) {
-        alert('Please enter a barcode');
-        return;
-    }
-    
     loadingOverlay.style.display = 'flex';
-    submitBarcodeBtn.disabled = true;
     
     try {
         const response = await fetch('/scan', {
@@ -278,22 +318,43 @@ async function handleManualBarcodeScan() {
                     nutriscore: result.open_food_facts ? result.open_food_facts.nutriscore : null
                 }
             };
+            
+            // Prevent duplicate entries in scanHistory
+            scanHistory = scanHistory.filter(x => x.dashboard.id !== result.scan_id && 
+                !(x.dashboard.open_food_facts && x.dashboard.open_food_facts.barcode === barcode));
             scanHistory.unshift(newScan);
             
             showScanResults(displayResult, result.scan_id);
             updateRecentScans();
             updateStats();
-            barcodeInput.value = '';
+            return true;
         } else {
             alert('Product lookup failed: ' + (result.error || 'Product not found in Open Food Facts.'));
+            return false;
         }
     } catch (error) {
         console.error('Barcode lookup error:', error);
         alert('An error occurred. Please check your connection.');
+        return false;
     } finally {
         loadingOverlay.style.display = 'none';
-        submitBarcodeBtn.disabled = false;
     }
+}
+
+async function handleManualBarcodeScan() {
+    const submitBarcodeBtn = document.getElementById('submitBarcodeBtn');
+    const barcodeInput = document.getElementById('barcodeInput');
+    
+    const barcode = barcodeInput.value.trim();
+    if (!barcode) {
+        alert('Please enter a barcode');
+        return;
+    }
+    
+    submitBarcodeBtn.disabled = true;
+    await performBarcodeLookup(barcode);
+    barcodeInput.value = '';
+    submitBarcodeBtn.disabled = false;
 }
 
 function loadLastScan() {
@@ -387,10 +448,22 @@ function showScanResults(result, scanId) {
     const modal = document.getElementById('resultsModal');
     const content = document.getElementById('resultsContent');
     const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+    const modalFavBtn = document.getElementById('modalFavBtn');
     
     // Show PDF button for normal scans
     if (downloadPdfBtn) {
         downloadPdfBtn.style.display = 'inline-flex';
+    }
+    
+    // Setup Favorite button state
+    const barcode = result.open_food_facts ? result.open_food_facts.barcode : null;
+    if (modalFavBtn) {
+        if (barcode) {
+            modalFavBtn.style.display = 'inline-flex';
+            updateFavoriteButtonUI(barcode);
+        } else {
+            modalFavBtn.style.display = 'none';
+        }
     }
     
     // Generate safety badge class
@@ -1050,5 +1123,106 @@ function dataURLtoBlob(dataURL) {
         u8arr[n] = bstr.charCodeAt(n);
     }
     return new Blob([u8arr], {type:mime});
+}
+
+// Client-side Favorites local storage management
+function getFavorites() {
+    try {
+        return JSON.parse(localStorage.getItem('favorites')) || [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function isFavorite(barcode) {
+    const favorites = getFavorites();
+    return favorites.some(x => x.barcode === barcode);
+}
+
+function toggleCurrentFavorite() {
+    if (!currentScanResult) return;
+    const barcode = currentScanResult.open_food_facts ? currentScanResult.open_food_facts.barcode : null;
+    if (!barcode) return;
+    
+    const favItem = {
+        barcode: barcode,
+        product_name: currentScanResult['Product Name'],
+        brand: currentScanResult['Brand'],
+        veg_status: currentScanResult['Veg Status'],
+        safety_color: currentScanResult['Safety Color'],
+        safety_score: currentScanResult['Safety Score']
+    };
+    
+    toggleFavorite(favItem);
+}
+
+function toggleFavorite(product) {
+    if (!product || !product.barcode) return;
+    let favorites = getFavorites();
+    const index = favorites.findIndex(x => x.barcode === product.barcode);
+    
+    if (index >= 0) {
+        favorites.splice(index, 1);
+    } else {
+        favorites.unshift(product);
+    }
+    
+    localStorage.setItem('favorites', JSON.stringify(favorites));
+    updateFavoritesGrid();
+    updateFavoriteButtonUI(product.barcode);
+}
+
+function updateFavoriteButtonUI(barcode) {
+    const favBtn = document.getElementById('modalFavBtn');
+    if (!favBtn) return;
+    
+    if (isFavorite(barcode)) {
+        favBtn.innerHTML = '❤️ Remove Favorite';
+        favBtn.style.borderColor = 'var(--secondary)';
+        favBtn.style.color = 'var(--secondary)';
+    } else {
+        favBtn.innerHTML = '🤍 Add to Favorites';
+        favBtn.style.borderColor = 'var(--border-color)';
+        favBtn.style.color = 'var(--text-secondary)';
+    }
+}
+
+function updateFavoritesGrid() {
+    const favGrid = document.getElementById('favoriteProducts');
+    if (!favGrid) return;
+    
+    const favorites = getFavorites();
+    if (favorites.length === 0) {
+        favGrid.innerHTML = '<p class="empty-state">No favorites saved yet. Heart products from details to save them here.</p>';
+        return;
+    }
+    
+    favGrid.innerHTML = favorites.slice(0, 5).map(fav => {
+        const safetyColor = fav.safety_color.toLowerCase();
+        
+        return `
+            <div class="scan-item" onclick="openFavoriteDetails('${fav.barcode}')">
+                <div class="scan-item-info">
+                    <div class="scan-item-name">${escapeHtml(fav.product_name)}</div>
+                    <div class="scan-item-meta">${escapeHtml(fav.brand)} • ${escapeHtml(fav.veg_status)}</div>
+                </div>
+                <div class="scan-item-status">
+                    <span class="badge badge-${safetyColor}">${escapeHtml(fav.safety_color)}</span>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+async function openFavoriteDetails(barcode) {
+    // Try in-memory scan history first
+    const localMatch = scanHistory.find(x => x.dashboard.open_food_facts && x.dashboard.open_food_facts.barcode === barcode);
+    if (localMatch) {
+        showScanResults(localMatch.dashboard, localMatch.dashboard.id);
+        return;
+    }
+    
+    // Fallback: perform lookup on API
+    await performBarcodeLookup(barcode);
 }
 

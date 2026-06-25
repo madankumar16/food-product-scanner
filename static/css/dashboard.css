@@ -296,20 +296,20 @@
 }
 
 .nutri-a {
-    background-color: #038141 !important; /* Official Nutriscore A Dark Green */
+    background-color: var(--nutri-a) !important;
 }
 .nutri-b {
-    background-color: #85bb2f !important; /* Official Nutriscore B Light Green */
+    background-color: var(--nutri-b) !important;
 }
 .nutri-c {
-    background-color: #fecb02 !important; /* Official Nutriscore C Yellow */
+    background-color: var(--nutri-c) !important;
     color: #111827 !important;
 }
 .nutri-d {
-    background-color: #ee8100 !important; /* Official Nutriscore D Orange */
+    background-color: var(--nutri-d) !important;
 }
 .nutri-e {
-    background-color: #e63e11 !important; /* Official Nutriscore E Red */
+    background-color: var(--nutri-e) !important;
 }
 
 /* NOVA Group Badges */

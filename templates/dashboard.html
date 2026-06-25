@@ -13,6 +13,15 @@
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 </head>
 <body>
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
+                document.body.classList.add('dark');
+            }
+        })();
+    </script>
     <!-- Navigation -->
     <nav class="navbar">
         <a href="{{ url_for('dashboard') }}" class="navbar-brand">
@@ -26,7 +35,16 @@
             <a href="{{ url_for('dashboard') }}" class="navbar-link active">Dashboard</a>
             <a href="{{ url_for('history') }}" class="navbar-link">History</a>
         </div>
-        <div class="navbar-user">
+        <div class="navbar-search" style="margin: 0 20px; flex: 1; max-width: 400px; position: relative;">
+            <div style="position: relative; width: 100%;">
+                <input type="text" id="navSearchInput" placeholder="Quick barcode lookup..." style="width: 100%; padding: 8px 16px 8px 36px; border: 1px solid var(--border-color); border-radius: 20px; font-size: 14px; background: var(--bg-color); color: var(--text-primary); transition: all 0.3s ease;">
+                <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); opacity: 0.5;">🔍</span>
+            </div>
+        </div>
+        <div class="navbar-user" style="display: flex; align-items: center; gap: 16px;">
+            <button id="themeToggleBtn" class="btn-secondary" style="padding: 8px; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-size: 18px; border: 1px solid var(--border-color); cursor: pointer; transition: all 0.2s;" title="Toggle Theme">
+                <span id="themeToggleIcon">🌙</span>
+            </button>
             <div class="user-info">
                 <div class="user-name">{{ username }}</div>
                 <div class="user-role">{{ user_role }}</div>
@@ -227,13 +245,26 @@
             </div>
         </div>
 
-        <!-- Recent Scans -->
-        <div class="card">
-            <div class="card-header">
-                <h2 class="card-title">Recent Scans</h2>
+        <!-- History and Favorites Grid -->
+        <div class="grid grid-2">
+            <!-- Recent Scans -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Recent Scans</h2>
+                </div>
+                <div id="recentScans" class="recent-scans">
+                    <p class="empty-state">No scans yet. Start scanning to see results here.</p>
+                </div>
             </div>
-            <div id="recentScans" class="recent-scans">
-                <p class="empty-state">No scans yet. Start scanning to see results here.</p>
+
+            <!-- Favorite Products -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Favorite Products ❤️</h2>
+                </div>
+                <div id="favoriteProducts" class="recent-scans">
+                    <p class="empty-state">No favorites saved yet. Heart products from details to save them here.</p>
+                </div>
             </div>
         </div>
 
@@ -256,6 +287,7 @@
                     <!-- Results will be inserted here -->
                 </div>
                 <div class="modal-footer">
+                    <button id="modalFavBtn" class="btn btn-secondary" onclick="toggleCurrentFavorite()" style="margin-right: auto;">🤍 Add to Favorites</button>
                     <button id="downloadPdfBtn" class="btn btn-secondary" onclick="generateReport()">📄 Download PDF Report</button>
                     <button class="btn btn-primary" onclick="closeResultsModal()">Close</button>
                 </div>
