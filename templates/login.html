@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Food Product Scanner</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Enhanced user-friendly login styles */
+        .user-selector {
+            margin-bottom: 24px;
+        }
+        
+        .user-selector h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+        
+        .user-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        
+        .user-option {
+            padding: 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            background: #ffffff;
+        }
+        
+        .user-option:hover {
+            border-color: #4A90E2;
+            background: #f0f7ff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(74, 144, 226, 0.15);
+        }
+        
+        .user-option.selected {
+            border-color: #4A90E2;
+            background: #4A90E2;
+            color: white;
+        }
+        
+        .user-option .user-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+            display: block;
+        }
+        
+        .user-option .user-label {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .user-option .user-desc {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        
+        .quick-login {
+            display: none;
+            margin-top: 16px;
+            padding: 12px;
+            background: #f0f9ff;
+            border-radius: 8px;
+            border: 1px solid #bfdbfe;
+        }
+        
+        .quick-login.show {
+            display: block;
+        }
+        
+        .demo-credentials {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 8px;
+        }
+        
+        .demo-credentials strong {
+            color: #374151;
+        }
+        
+        .login-tips {
+            margin-top: 24px;
+            padding: 16px;
+            background: #fef3c7;
+            border-radius: 8px;
+            border: 1px solid #fcd34d;
+        }
+        
+        .login-tips h4 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #92400e;
+            margin-bottom: 8px;
+        }
+        
+        .login-tips ul {
+            margin: 0;
+            padding-left: 16px;
+        }
+        
+        .login-tips li {
+            font-size: 12px;
+            color: #78350f;
+            margin-bottom: 4px;
+        }
+        
+        .welcome-message {
+            text-align: center;
+            margin-bottom: 24px;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            color: white;
+        }
+        
+        .welcome-message h2 {
+            margin: 0 0 8px 0;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .welcome-message p {
+            margin: 0;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        @media (max-width: 480px) {
+            .user-options {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body class="login-page">
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="logo">
+                    <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="48" height="48" rx="12" fill="#4A90E2"/>
+                        <path d="M24 12L28 20H36L30 26L32 34L24 30L16 34L18 26L12 20H20L24 12Z" fill="white"/>
+                    </svg>
+                </div>
+                <h1>Food Product Scanner</h1>
+                <p class="subtitle">Smart AI-powered food analysis with Gemini 2.5</p>
+            </div>
+            
+            <div class="welcome-message">
+                <h2>Welcome Back! 👋</h2>
+                <p>Choose your login type to get started with intelligent food scanning</p>
+            </div>
+            
+            <!-- User Type Selector -->
+            <div class="user-selector">
+                <h3>Select Login Type</h3>
+                <div class="user-options">
+                    <div class="user-option" data-user="admin">
+                        <span class="user-icon">👨‍💼</span>
+                        <div class="user-label">Administrator</div>
+                        <div class="user-desc">Full access & settings</div>
+                    </div>
+                    <div class="user-option" data-user="user">
+                        <span class="user-icon">👤</span>
+                        <div class="user-label">Regular User</div>
+                        <div class="user-desc">Scan & analyze products</div>
+                    </div>
+                    <div class="user-option" data-user="demo">
+                        <span class="user-icon">🎮</span>
+                        <div class="user-label">Demo Mode</div>
+                        <div class="user-desc">Try without login</div>
+                    </div>
+                    <div class="user-option" data-user="guest">
+                        <span class="user-icon">👁️</span>
+                        <div class="user-label">Guest Access</div>
+                        <div class="user-desc">Limited features</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Login Info -->
+            <div id="quickLogin" class="quick-login">
+                <h4>Quick Login Credentials:</h4>
+                <div id="credentialsInfo" class="demo-credentials">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+            
+            <form id="loginForm" class="login-form" novalidate>
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required autocomplete="username" placeholder="Enter your username" value="">
+                    <span class="input-icon">👤</span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required autocomplete="current-password" placeholder="Enter your password" value="">
+                    <span class="input-icon">🔒</span>
+                    <button type="button" class="toggle-password" id="togglePassword" aria-label="Toggle password visibility">👁️</button>
+                </div>
+                
+                <div class="form-options">
+                    <label class="remember-me">
+                        <input type="checkbox" name="remember">
+                        <span>Remember me</span>
+                    </label>
+                    <a href="#" class="forgot-password">Forgot password?</a>
+                </div>
+                
+                <button type="submit" class="login-button">
+                    <span>Sign In</span>
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <path d="M7.5 15L12.5 10L7.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                
+                <div id="errorMessage" class="error-message"></div>
+            </form>
+            
+            <!-- Login Tips -->
+            <div class="login-tips">
+                <h4>💡 Pro Tips:</h4>
+                <ul>
+                    <li><strong>Admin:</strong> Full system access, user management, and settings</li>
+                    <li><strong>User:</strong> Scan products, view history, and generate reports</li>
+                    <li><strong>Demo:</strong> Try all features with sample data</li>
+                    <li><strong>Guest:</strong> Quick access with limited features</li>
+                </ul>
+            </div>
+            
+            <div class="login-footer">
+                <p>New to Food Scanner? <a href="#">Create an account</a></p>
+                <p>Need help? <a href="#">View user guide</a></p>
+            </div>
+        </div>
+        
+        <div class="login-decoration">
+            <div class="decoration-circle circle-1"></div>
+            <div class="decoration-circle circle-2"></div>
+            <div class="decoration-circle circle-3"></div>
+        </div>
+    </div>
+    
+    <script>
+        // Enhanced login functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const userOptions = document.querySelectorAll('.user-option');
+            const quickLogin = document.getElementById('quickLogin');
+            const credentialsInfo = document.getElementById('credentialsInfo');
+            const usernameInput = document.getElementById('username');
+            const passwordInput = document.getElementById('password');
+            const loginForm = document.getElementById('loginForm');
+            
+            // User credentials mapping
+            const credentials = {
+                admin: { username: 'admin', password: 'admin123', desc: 'Full system administrator' },
+                user: { username: 'user', password: 'user123', desc: 'Regular user account' },
+                demo: { username: 'demo', password: 'demo123', desc: 'Demo account with sample data' },
+                guest: { username: 'guest', password: 'guest123', desc: 'Limited guest access' }
+            };
+            
+            // Handle user option selection
+            userOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    // Remove selected class from all options
+                    userOptions.forEach(opt => opt.classList.remove('selected'));
+                    
+                    // Add selected class to clicked option
+                    this.classList.add('selected');
+                    
+                    // Get user type
+                    const userType = this.dataset.user;
+                    const creds = credentials[userType];
+                    
+                    // Show quick login info
+                    quickLogin.classList.add('show');
+                    credentialsInfo.innerHTML = `
+                        <strong>${userType.charAt(0).toUpperCase() + userType.slice(1)}:</strong><br>
+                        Username: <strong>${creds.username}</strong><br>
+                        Password: <strong>${creds.password}</strong><br>
+                        <small>${creds.desc}</small>
+                    `;
+                    
+                    // Auto-fill credentials
+                    usernameInput.value = creds.username;
+                    passwordInput.value = creds.password;
+                    
+                    // Focus on submit button
+                    document.querySelector('.login-button').focus();
+                });
+            });
+            
+            // Auto-select admin by default
+            document.querySelector('[data-user="admin"]').click();
+            
+            // Enhanced form submission
+            loginForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const username = usernameInput.value.trim();
+                const password = passwordInput.value;
+                
+                // Validate inputs
+                if (!username || !password) {
+                    showError('Please enter both username and password');
+                    return;
+                }
+                
+                // Check credentials
+                const validCredentials = Object.values(credentials);
+                const isValid = validCredentials.some(creds => 
+                    creds.username === username && creds.password === password
+                );
+                
+                if (!isValid) {
+                    showError('Invalid username or password. Please check the credentials above.');
+                    return;
+                }
+                
+                // Submit form
+                this.submit();
+            });
+            
+            // Toggle password visibility
+            document.getElementById('togglePassword').addEventListener('click', function() {
+                const type = passwordInput.type === 'password' ? 'text' : 'password';
+                passwordInput.type = type;
+                this.textContent = type === 'password' ? '👁️' : '👁️‍🗨️';
+            });
+            
+            // Error handling
+            function showError(message) {
+                const errorElement = document.getElementById('errorMessage');
+                errorElement.textContent = message;
+                errorElement.style.display = 'block';
+                
+                // Auto-hide after 5 seconds
+                setTimeout(() => {
+                    errorElement.style.display = 'none';
+                }, 5000);
+            }
+            
+            // Handle forgot password
+            document.querySelector('.forgot-password').addEventListener('click', function(e) {
+                e.preventDefault();
+                alert('For demo purposes, use the credentials shown above. In production, this would open a password reset form.');
+            });
+        });
+    </script>
+</body>
+</html>

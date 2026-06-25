@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>History - Food Product Scanner</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="{{ url_for('dashboard') }}" class="navbar-brand">
+            <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+                <rect width="48" height="48" rx="12" fill="#4A90E2"/>
+                <path d="M24 12L28 20H36L30 26L32 34L24 30L16 34L18 26L12 20H20L24 12Z" fill="white"/>
+            </svg>
+            <span>Food Scanner</span>
+        </a>
+        <div class="navbar-menu">
+            <a href="{{ url_for('dashboard') }}" class="navbar-link">Dashboard</a>
+            <a href="{{ url_for('history') }}" class="navbar-link active">History</a>
+        </div>
+        <div class="navbar-user">
+            <span class="user-name">{{ username }}</span>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h1>Scan History</h1>
+            <p>Your previous food product scans</p>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2>Recent Scans</h2>
+            </div>
+            <div class="card-body">
+                {% if scans %}
+                    {% for scan in scans %}
+                    <div class="scan-item">
+                        <h3>{{ scan.product_name }}</h3>
+                        <p><strong>Brand:</strong> {{ scan.brand }}</p>
+                        <p><strong>Status:</strong> <span class="badge badge-{{ scan.safety_color.lower() }}">{{ scan.veg_status }} - {{ scan.safety_color }}</span></p>
+                        <p><strong>Score:</strong> {{ scan.safety_score }}/100</p>
+                        <p><strong>Date:</strong> {{ scan.timestamp }}</p>
+                        <a href="{{ url_for('scan_details', scan_id=scan.id) }}" class="btn btn-sm btn-primary">View Details</a>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p>No scans yet. Start scanning to see your history here.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <a href="{{ url_for('dashboard') }}" class="btn btn-primary">New Scan</a>
+    </div>
+</body>
+</html>

@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Food Product Scanner</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/camera.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/upload.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/modal.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <a href="{{ url_for('dashboard') }}" class="navbar-brand">
+            <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+                <rect width="48" height="48" rx="12" fill="#4A90E2"/>
+                <path d="M24 12L28 20H36L30 26L32 34L24 30L16 34L18 26L12 20H20L24 12Z" fill="white"/>
+            </svg>
+            <span>Food Scanner</span>
+        </a>
+        <div class="navbar-menu">
+            <a href="{{ url_for('dashboard') }}" class="navbar-link active">Dashboard</a>
+            <a href="{{ url_for('history') }}" class="navbar-link">History</a>
+        </div>
+        <div class="navbar-user">
+            <div class="user-info">
+                <div class="user-name">{{ username }}</div>
+                <div class="user-role">{{ user_role }}</div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="page-header">
+            <h1>Scan Food Product</h1>
+            <p>Analyze ingredients, check health impacts, and get safety ratings</p>
+        </div>
+
+        <div class="grid grid-2">
+            <!-- Scan Options Card -->
+            <div class="card scan-card">
+                <div class="card-header">
+                    <h2 class="card-title">Worldwide Product Scanner</h2>
+                </div>
+                
+                <div class="scan-options">
+                    <div class="scan-option active" data-type="camera">
+                        <div class="option-icon">📷</div>
+                        <div class="option-content">
+                            <h3>Live Barcode Scan</h3>
+                            <p>Point camera at a barcode to scan in real-time</p>
+                        </div>
+                    </div>
+                    
+                    <div class="scan-option" data-type="upload">
+                        <div class="option-icon">📁</div>
+                        <div class="option-content">
+                            <h3>Upload Label / Barcode</h3>
+                            <p>Upload a label image for OCR ingredients analysis or barcode decode</p>
+                        </div>
+                    </div>
+
+                    <div class="scan-option" data-type="manual">
+                        <div class="option-icon">🔢</div>
+                        <div class="option-content">
+                            <h3>Manual Barcode Entry</h3>
+                            <p>Type in product barcode digits manually</p>
+                        </div>
+                    </div>
+
+                    <div class="scan-option" data-type="nutricalc">
+                        <div class="option-icon">📊</div>
+                        <div class="option-content">
+                            <h3>Nutri-Score Calculator</h3>
+                            <p>Manually calculate Nutri-Score using nutrition facts</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Image Upload -->
+                <div id="imageUpload" class="image-upload" style="display: none;">
+                    <div class="upload-header" style="margin-bottom: 15px;">
+                        <h3>Upload Product Image</h3>
+                        <p>Select a clear product label image or barcode photo</p>
+                    </div>
+                    
+                    <div class="upload-area" id="uploadArea">
+                        <div class="upload-content">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17,8 12,3 7,8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                            <p>Drag & drop image here or click to browse</p>
+                            <input type="file" id="imageFile" accept="image/*" style="display: none;">
+                            <button type="button" id="browseBtn" class="btn btn-secondary">Browse Files</button>
+                        </div>
+                    </div>
+                    
+                    <div class="preview-area" id="previewArea" style="display: none; margin-top: 15px;">
+                        <h4>Selected Image:</h4>
+                        <div class="image-preview" style="margin-top: 8px;">
+                            <img id="previewImage" src="" alt="Product image" style="max-height: 200px; border-radius: 8px;">
+                            <button type="button" id="removeImageBtn" class="btn btn-sm btn-danger" style="margin-top: 8px;">Remove</button>
+                        </div>
+                    </div>
+                    
+                    <button id="scanUploadBtn" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 20px;">Analyze Image</button>
+                </div>
+
+                <!-- Live Camera Feed (html5-qrcode) -->
+                <div id="cameraFeed" class="camera-feed" style="display: block;">
+                    <div class="camera-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h3>Real-Time Barcode Scanner</h3>
+                        <button id="stopCameraBtn" class="btn btn-sm btn-secondary">Stop Scanner</button>
+                    </div>
+                    <div id="qr-reader" style="width: 100%; border-radius: 12px; overflow: hidden; background: #111; margin: 15px 0; aspect-ratio: 4/3; position: relative;">
+                        <!-- Scanner reticle -->
+                        <div class="scanner-reticle" style="position: absolute; border: 2px solid var(--primary-blue); width: 70%; height: 50%; top: 25%; left: 15%; border-radius: 8px; box-shadow: 0 0 0 9999px rgba(0,0,0,0.5); z-index: 10; pointer-events: none;">
+                            <div class="scanner-line" style="position: absolute; width: 100%; height: 3px; background: linear-gradient(to right, transparent, var(--danger), transparent); top: 0; animation: scanAnim 2s linear infinite; box-shadow: 0 0 8px var(--danger);"></div>
+                        </div>
+                    </div>
+                    <div class="camera-controls" style="display: flex; gap: 10px; justify-content: center;">
+                        <button id="switchCameraBtn" class="btn btn-secondary btn-sm">🔄 Switch Camera</button>
+                    </div>
+                </div>
+
+                <!-- Manual Barcode Entry -->
+                <div id="manualBarcode" class="manual-barcode" style="display: none;">
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label for="barcodeInput" style="display: block; font-size: 14px; font-weight: 500; color: var(--gray-700); margin-bottom: 8px;">Enter Product Barcode (EAN/UPC):</label>
+                        <input type="text" id="barcodeInput" placeholder="e.g. 3017620425035 (Nutella)" style="width: 100%; padding: 12px 16px; border: 2px solid var(--gray-200); border-radius: 10px; font-size: 15px;">
+                    </div>
+                    <button id="submitBarcodeBtn" class="btn btn-primary" style="width: 100%; justify-content: center;">Find Product</button>
+                </div>
+
+                <!-- Nutri-Score Calculator Form -->
+                <div id="nutriScoreCalc" class="nutriscore-calc" style="display: none;">
+                    <div class="upload-header" style="margin-bottom: 15px;">
+                        <h3>Nutri-Score Calculator</h3>
+                        <p>Calculate official letter grades based on nutrition facts per 100g/100ml</p>
+                    </div>
+
+                    <!-- Category Selector -->
+                    <div class="form-row-calc">
+                        <div class="form-group-calc">
+                            <label>Food Category</label>
+                            <select id="calcCategory">
+                                <option value="general_foods">General Foods</option>
+                                <option value="cheese">Cheese</option>
+                                <option value="red_meat">Red Meat</option>
+                                <option value="fats_oils_nuts">Fats, Oils & Nuts</option>
+                                <option value="beverage">Beverage / Drink</option>
+                            </select>
+                        </div>
+                        <div class="form-group-calc">
+                            <label>Energy Unit</label>
+                            <select id="calcEnergyUnit">
+                                <option value="kcal">kcal (Calories)</option>
+                                <option value="kj">kJ (Kilojoules)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Nutrition Inputs -->
+                    <div class="inputs-grid-calc">
+                        <div class="form-group-calc">
+                            <label for="calcEnergy">Energy (per 100g)</label>
+                            <input type="number" id="calcEnergy" placeholder="e.g. 350" min="0" step="any">
+                        </div>
+                        <div class="form-group-calc">
+                            <label for="calcSatFat">Saturated Fat (g)</label>
+                            <input type="number" id="calcSatFat" placeholder="e.g. 5.2" min="0" step="any">
+                        </div>
+                        <div class="form-group-calc">
+                            <label for="calcSugars">Sugars (g)</label>
+                            <input type="number" id="calcSugars" placeholder="e.g. 12.0" min="0" step="any">
+                        </div>
+                        <div class="form-group-calc">
+                            <label for="calcSalt">Salt (g)</label>
+                            <input type="number" id="calcSalt" placeholder="e.g. 0.8" min="0" step="any">
+                        </div>
+                        <div class="form-group-calc">
+                            <label for="calcFiber">Dietary Fiber (g)</label>
+                            <input type="number" id="calcFiber" placeholder="e.g. 3.0" min="0" step="any">
+                        </div>
+                        <div class="form-group-calc">
+                            <label for="calcProtein">Protein (g)</label>
+                            <input type="number" id="calcProtein" placeholder="e.g. 8.5" min="0" step="any">
+                        </div>
+                    </div>
+
+                    <div class="form-group-calc" style="margin-bottom: 20px;">
+                        <label for="calcFruitVeg">Fruits, Veg & Nuts Estimate (%)</label>
+                        <input type="number" id="calcFruitVeg" placeholder="e.g. 25" min="0" max="100">
+                    </div>
+
+                    <button id="runCalcBtn" class="btn btn-primary" style="width: 100%; justify-content: center;">Calculate Score</button>
+                </div>
+            </div>
+
+            <!-- Quick Stats Card -->
+            <div class="card stats-card">
+                <div class="card-header">
+                    <h2 class="card-title">Quick Stats</h2>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" id="totalScans">0</div>
+                        <div class="stat-label">Total Scans</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="safeProducts">0</div>
+                        <div class="stat-label">Safe Products</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="warnings">0</div>
+                        <div class="stat-label">Health Warnings</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Scans -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Recent Scans</h2>
+            </div>
+            <div id="recentScans" class="recent-scans">
+                <p class="empty-state">No scans yet. Start scanning to see results here.</p>
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+            <div class="loading-content">
+                <div class="spinner"></div>
+                <p>Scanning product...</p>
+            </div>
+        </div>
+
+        <!-- Scan Results Modal -->
+        <div id="resultsModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Scan Results</h2>
+                    <button class="modal-close" onclick="closeResultsModal()">&times;</button>
+                </div>
+                <div class="modal-body" id="resultsContent">
+                    <!-- Results will be inserted here -->
+                </div>
+                <div class="modal-footer">
+                    <button id="downloadPdfBtn" class="btn btn-secondary" onclick="generateReport()">📄 Download PDF Report</button>
+                    <button class="btn btn-primary" onclick="closeResultsModal()">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/web_camera.js') }}"></script>
+</body>
+</html>
+

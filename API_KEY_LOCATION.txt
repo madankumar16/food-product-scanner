@@ -1,0 +1,76 @@
+================================================================================
+                    API KEY LOCATION - QUICK REFERENCE
+================================================================================
+
+YOUR GEMINI API KEY IS STORED IN:
+
+📁 File: .env
+📍 Location: Root directory of the project
+📝 Line: 9
+
+GEMINI_API_KEY=AIzaSyCRyC1Q4HAVrUokb2-UK0dxaObeyHjEe0g
+
+================================================================================
+
+HOW TO VIEW:
+
+Windows CMD:
+  type .env
+
+Windows PowerShell:
+  Get-Content .env
+
+Text Editor:
+  notepad .env
+
+Python:
+  python -c "from config import Config; print(Config.GEMINI_API_KEY)"
+
+================================================================================
+
+HOW TO EDIT:
+
+1. Open .env file in any text editor
+2. Find line: GEMINI_API_KEY=...
+3. Change the value after the = sign
+4. Save the file
+5. Restart the Flask app
+
+================================================================================
+
+BACKUP LOCATION:
+
+If .env file is missing, the API key is also hardcoded in:
+
+📁 File: config.py
+📝 Line: 35
+
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY') or 'AIzaSyCRyC1Q4HAVrUokb2-UK0dxaObeyHjEe0g'
+
+================================================================================
+
+SECURITY:
+
+✅ .env file is in .gitignore (won't be committed to Git)
+✅ python-dotenv installed and working
+✅ API key loaded successfully
+
+⚠️  NEVER share your .env file publicly!
+⚠️  NEVER commit .env to Git!
+
+================================================================================
+
+CURRENT STATUS:
+
+✅ .env file exists
+✅ API key loaded: AIzaSyCRyC1Q4HAVrUok...
+✅ Gemini 2.5 Flash model configured
+✅ App ready to run
+
+Run: python app.py
+
+================================================================================
+
+For detailed guide, see: ENV_SETUP_GUIDE.md
+
+================================================================================

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - Food Product Scanner</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="{{ url_for('dashboard') }}" class="navbar-brand">
+            <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+                <rect width="48" height="48" rx="12" fill="#4A90E2"/>
+                <path d="M24 12L28 20H36L30 26L32 34L24 30L16 34L18 26L12 20H20L24 12Z" fill="white"/>
+            </svg>
+            <span>Food Scanner</span>
+        </a>
+        <div class="navbar-menu">
+            <a href="{{ url_for('dashboard') }}" class="navbar-link">Dashboard</a>
+            <a href="{{ url_for('history') }}" class="navbar-link">History</a>
+        </div>
+        <div class="navbar-user">
+            <span class="user-name">{{ username }}</span>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h1>User Profile</h1>
+            <p>Your scanning statistics and activity</p>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2>{{ username }}'s Statistics</h2>
+            </div>
+            <div class="card-body">
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value">{{ stats.total_scans }}</div>
+                        <div class="stat-label">Total Scans</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">{{ "%.1f"|format(stats.avg_safety_score) }}</div>
+                        <div class="stat-label">Avg Safety Score</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">{{ stats.veg_products }}</div>
+                        <div class="stat-label">Veg/Vegan Products</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">{{ stats.red_products }}</div>
+                        <div class="stat-label">High Risk Products</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2>Account Settings</h2>
+            </div>
+            <div class="card-body">
+                <p><strong>Username:</strong> {{ username }}</p>
+                <p><strong>Account Type:</strong> User</p>
+                <p><strong>Member Since:</strong> Today</p>
+            </div>
+        </div>
+
+        <a href="{{ url_for('dashboard') }}" class="btn btn-primary">Back to Dashboard</a>
+    </div>
+</body>
+</html>

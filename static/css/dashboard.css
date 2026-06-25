@@ -1,0 +1,463 @@
+/* Dashboard Specific Styles */
+
+.page-header {
+    margin-bottom: 32px;
+}
+
+.page-header h1 {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin-bottom: 8px;
+}
+
+.page-header p {
+    font-size: 16px;
+    color: var(--gray-500);
+}
+
+/* Scan Card */
+.scan-card {
+    min-height: 400px;
+}
+
+.scan-options {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.scan-option {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    border: 2px solid var(--gray-200);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: var(--gray-50);
+}
+
+.scan-option:hover {
+    border-color: var(--primary-blue);
+    background: var(--primary-blue-light);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.scan-option.active {
+    border-color: var(--primary-blue);
+    background: var(--primary-blue-light);
+    box-shadow: 0 0 0 4px rgba(74, 144, 226, 0.1);
+}
+
+.option-icon {
+    font-size: 32px;
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm);
+}
+
+.option-content h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--gray-900);
+    margin-bottom: 4px;
+}
+
+.option-content p {
+    font-size: 14px;
+    color: var(--gray-500);
+    margin: 0;
+}
+
+/* Manual Form */
+.manual-form {
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid var(--gray-200);
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.manual-form .form-group {
+    margin-bottom: 20px;
+}
+
+.manual-form label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--gray-700);
+    margin-bottom: 8px;
+}
+
+.manual-form input,
+.manual-form textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid var(--gray-200);
+    border-radius: 10px;
+    font-size: 15px;
+    font-family: inherit;
+    transition: all 0.3s ease;
+    background: var(--white);
+    color: var(--gray-900);
+}
+
+.manual-form input:focus,
+.manual-form textarea:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 4px rgba(74, 144, 226, 0.1);
+}
+
+.manual-form textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.scan-button {
+    width: 100%;
+    justify-content: center;
+    margin-top: 24px;
+    padding: 16px;
+    font-size: 16px;
+}
+
+/* Stats Card */
+.stats-card {
+    min-height: 400px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 24px;
+    background: var(--gray-50);
+    border-radius: 12px;
+    transition: transform 0.2s;
+}
+
+.stat-item:hover {
+    transform: translateY(-4px);
+}
+
+.stat-value {
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--primary-blue);
+    margin-bottom: 8px;
+}
+
+.stat-label {
+    font-size: 14px;
+    color: var(--gray-500);
+    font-weight: 500;
+}
+
+/* Recent Scans */
+.recent-scans {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.scan-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px;
+    background: var(--gray-50);
+    border-radius: 12px;
+    border: 1px solid var(--gray-200);
+    transition: all 0.2s;
+}
+
+.scan-item:hover {
+    background: var(--white);
+    box-shadow: var(--shadow-md);
+    transform: translateX(4px);
+}
+
+.scan-item-info {
+    flex: 1;
+}
+
+.scan-item-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--gray-900);
+    margin-bottom: 4px;
+}
+
+.scan-item-meta {
+    font-size: 14px;
+    color: var(--gray-500);
+}
+
+.scan-item-status {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 48px;
+    color: var(--gray-400);
+    font-size: 15px;
+}
+
+/* Loading Overlay */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+}
+
+.loading-content {
+    background: var(--white);
+    padding: 48px;
+    border-radius: 16px;
+    text-align: center;
+    box-shadow: var(--shadow-xl);
+}
+
+.loading-content p {
+    margin-top: 16px;
+    color: var(--gray-600);
+    font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .scan-option {
+        flex-direction: column;
+        text-align: center;
+    }
+}
+
+/* Barcode Viewfinder laser scanning animation */
+@keyframes scanAnim {
+    0% {
+        top: 5%;
+    }
+    50% {
+        top: 95%;
+    }
+    100% {
+        top: 5%;
+    }
+}
+
+/* Nutri-Score Badges */
+.score-badge {
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.2s;
+}
+
+.score-badge:hover {
+    transform: scale(1.1);
+}
+
+.nutri-a {
+    background-color: #038141 !important; /* Official Nutriscore A Dark Green */
+}
+.nutri-b {
+    background-color: #85bb2f !important; /* Official Nutriscore B Light Green */
+}
+.nutri-c {
+    background-color: #fecb02 !important; /* Official Nutriscore C Yellow */
+    color: #111827 !important;
+}
+.nutri-d {
+    background-color: #ee8100 !important; /* Official Nutriscore D Orange */
+}
+.nutri-e {
+    background-color: #e63e11 !important; /* Official Nutriscore E Red */
+}
+
+/* NOVA Group Badges */
+.nova-1 {
+    background-color: #00a651 !important; /* NOVA 1: Unprocessed / Minimally processed */
+}
+.nova-2 {
+    background-color: #f39200 !important; /* NOVA 2: Processed culinary ingredients */
+}
+.nova-3 {
+    background-color: #e65600 !important; /* NOVA 3: Processed foods */
+}
+.nova-4 {
+    background-color: #cf000f !important; /* NOVA 4: Ultra-processed foods */
+}
+.nova-n\/a, .nova-null, .nova-undefined {
+    background-color: #6b7280 !important;
+}
+
+/* Eco-Score Badges */
+.eco-a {
+    background-color: #1e7f51 !important; /* Very low environmental impact */
+}
+.eco-b {
+    background-color: #4a9f62 !important;
+}
+.eco-c {
+    background-color: #adc357 !important;
+    color: #111827 !important;
+}
+.eco-d {
+    background-color: #e8a04b !important;
+}
+.eco-e {
+    background-color: #cf624c !important;
+}
+.eco-n\/a, .eco-null, .eco-undefined {
+    background-color: #6b7280 !important;
+}
+
+/* Nutrition Table Styling */
+.nutrition-table {
+    border-collapse: separate !important;
+}
+
+.nutrition-table th, .nutrition-table td {
+    padding: 10px 15px !important;
+    border-bottom: 1px solid var(--gray-100);
+}
+
+.nutrition-table tbody tr:hover {
+    background-color: var(--gray-50);
+}
+
+/* HTML5 Qrcode library overrides for custom reticle compatibility */
+#qr-reader__scan_region {
+    background: #000;
+}
+
+#qr-reader video {
+    object-fit: cover !important;
+    width: 100% !important;
+    height: 100% !important;
+    border-radius: 12px;
+}
+
+/* Nutri-Score Calculator Glassmorphic Styling */
+.nutriscore-calc {
+    background: rgba(255, 255, 255, 0.45);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(229, 231, 235, 0.5);
+    border-radius: 16px;
+    padding: 24px;
+    margin-top: 10px;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.04);
+}
+
+.nutriscore-calc h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--gray-900);
+}
+
+.nutriscore-calc p {
+    font-size: 14px;
+    color: var(--gray-500);
+}
+
+.form-group-calc {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 4px;
+}
+
+.form-group-calc label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gray-600);
+    margin-bottom: 6px;
+}
+
+.form-group-calc input,
+.form-group-calc select {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid var(--gray-200);
+    border-radius: 10px;
+    font-size: 14px;
+    background: rgba(255, 255, 255, 0.85);
+    color: var(--gray-800);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.01);
+}
+
+.form-group-calc input:focus,
+.form-group-calc select:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    background: var(--white);
+    box-shadow: 0 0 0 4px rgba(74, 144, 226, 0.15), inset 0 2px 4px rgba(0, 0, 0, 0.005);
+}
+
+.form-group-calc input::placeholder {
+    color: var(--gray-400);
+}
+
+.inputs-grid-calc {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.form-row-calc {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+#runCalcBtn {
+    transition: all 0.3s ease;
+}
+
+#runCalcBtn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(74, 144, 226, 0.25);
+}
+
+
