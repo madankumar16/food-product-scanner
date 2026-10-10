@@ -42,14 +42,14 @@ class Config:
     
     # Flask Configuration
     SECRET_KEY = os.environ.get('SECRET_KEY') or os.urandom(24)
-    DEBUG = os.environ.get('FLASK_DEBUG', 'True').lower() == 'true'
+    DEBUG = os.environ.get('FLASK_DEBUG', 'false').lower() == 'true'
     
     # API Keys - Add your API keys here or set as environment variables
     # Open Food Facts API (no key required, but you can set user agent)
     OPENFOODFACTS_USER_AGENT = os.environ.get('OPENFOODFACTS_USER_AGENT') or 'FoodScanner/1.0'
     
     # Gemini AI API Key (REQUIRED for AI analysis)
-    GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY') or 'AIzaSyCRyC1Q4HAVrUokb2-UK0dxaObeyHjEe0g'
+    GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '').strip()
     
     # Optional: Other product database APIs
     # USDA_API_KEY = os.environ.get('USDA_API_KEY') or ''
