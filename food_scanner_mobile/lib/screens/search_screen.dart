@@ -78,7 +78,7 @@ class _SearchScreenState extends State<SearchScreen> {
         backgroundColor: const Color(0xFF1E293B),
         elevation: 0,
         title: const Text(
-          'Lookup'
+          'Lookup',
           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
       ),
@@ -90,7 +90,7 @@ class _SearchScreenState extends State<SearchScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Type a code'
+                  'Type a code',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 20,
