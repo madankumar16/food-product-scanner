@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}{{ site.name }}{% endblock %}</title>
+    <meta name="description" content="{% block description %}Scan a food barcode to see ingredients, allergens, vegetarian status and Nutri-Score.{% endblock %}">
+    <meta name="theme-color" content="#111827">
+    <link rel="icon" href="{{ url_for('static', filename='img/favicon.svg') }}" type="image/svg+xml">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/site.css') }}">
+</head>
+<body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <svg width="0" height="0" class="visually-hidden" aria-hidden="true" focusable="false">
+        <symbol id="i-logo" viewBox="0 0 24 24"><path d="M4 7V5a1 1 0 0 1 1-1h2M17 4h2a1 1 0 0 1 1 1v2M20 17v2a1 1 0 0 1-1 1h-2M7 20H5a1 1 0 0 1-1-1v-2"/><path d="M8 8v8M11 8v8M14 8v8M17 8v8"/></symbol>
+        <symbol id="i-camera" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></symbol>
+        <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 15V4M7 9l5-5 5 5M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"/></symbol>
+        <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+    </svg>
+
+    <header class="site-header">
+        <nav class="wrap nav" aria-label="Main">
+            <a class="logo" href="{{ url_for('index') }}" aria-label="{{ site.name }} home">
+                <svg class="icon" aria-hidden="true"><use href="#i-logo"/></svg>{{ site.name }}
+            </a>
+            <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="nav-links">
+                <svg class="icon" aria-hidden="true"><use href="#i-menu"/></svg><span class="visually-hidden">Menu</span>
+            </button>
+            {% set ep = request.endpoint %}
+            <ul class="nav-links" id="nav-links">
+                <li><a href="{{ url_for('index') }}" {% if ep == 'index' %}aria-current="page"{% endif %}>Scan</a></li>
+                <li><a href="{{ url_for('history') }}" {% if ep == 'history' %}aria-current="page"{% endif %}>History</a></li>
+                <li><a href="{{ url_for('nutri_score_page') }}" {% if ep == 'nutri_score_page' %}aria-current="page"{% endif %}>Nutri-Score calculator</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main id="main" tabindex="-1">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="site-footer">
+        <div class="wrap footer-grid">
+            <div>
+                <p>&copy; {{ current_year }} {{ site.owner or site.name }}. Product data from <a href="https://world.openfoodfacts.org" rel="noopener">Open Food Facts</a> (ODbL).</p>
+                {% if site.address %}<p>{{ site.address }}</p>{% endif %}
+                {% if site.email %}<p><a href="mailto:{{ site.email }}">{{ site.email }}</a></p>{% endif %}
+                {% if site.phone %}<p><a href="tel:{{ site.phone | replace(' ', '') }}">{{ site.phone }}</a></p>{% endif %}
+            </div>
+            <ul class="footer-links" aria-label="Legal">
+                <li><a href="{{ url_for('privacy') }}">Privacy</a></li>
+                <li><a href="{{ url_for('terms') }}">Terms</a></li>
+                <li><a href="{{ url_for('cookies') }}">Cookies</a></li>
+                <li><a href="{{ url_for('refunds') }}">Refunds</a></li>
+            </ul>
+        </div>
+    </footer>
+
+    <div class="cookie-notice is-hidden" id="cookie-notice" role="region" aria-label="Cookie notice">
+        <p>This site uses no cookies. Your scan history is saved only in this browser. <a href="{{ url_for('cookies') }}">Details</a></p>
+        <button class="btn" type="button" id="cookie-ok">OK</button>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/site.js') }}" defer></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

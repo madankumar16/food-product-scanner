@@ -1,169 +1,45 @@
-# 🌿 Foodscanner Vercel App
+# Food Product Scanner
 
-A production-grade, AI-powered food product scanner system tailored with a clinical, minimalistic design. It combines a robust **Python Flask Backend** (leveraging Tesseract OCR, pyzbar, and Gemini 2.5 Flash AI) with a premium **Flutter Mobile Application** featuring offline caching, scan history, favorites, and real-time allergen/dietary warning alerts.
+Scan or type a food barcode to see ingredients, possible allergens, vegetarian status (Indian convention: egg is non-veg), Nutri-Score (2023 algorithm) and NOVA group. Works on the web (Flask, deployed on Vercel) and from the Flutter app in `food_scanner_mobile/`.
 
-[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/)
-[![Flask](https://img.shields.io/badge/Flask-3.0+-green.svg)](https://flask.palletsprojects.com/)
-[![Flutter](https://img.shields.io/badge/Flutter-3.0+-cyan.svg)](https://flutter.dev/)
-[![Vercel Deployment](https://img.shields.io/badge/Vercel-Deployed-black.svg)](https://food-product-scanner-main.vercel.app)
-[![Gemini AI](https://img.shields.io/badge/Gemini-2.5%20Flash-orange.svg)](https://deepmind.google/technologies/gemini/)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+- **Barcodes** are looked up in [Open Food Facts](https://world.openfoodfacts.org) (free, ODbL).
+- **Photos** are checked for a barcode on the server (zxing-cpp). If `GEMINI_API_KEY` is set and there's no barcode, Gemini reads the label text. Without a key the site runs with no AI at all.
+- **Nothing is faked.** Unknown products, missing ingredients and unconfirmed veg status are shown as such.
+- **No accounts, no cookies, no server-side storage.** History and saved products live in the visitor's browser.
 
----
-
-## 🌟 Key Features
-
-### 1. Multi-Platform Scanning Options
-* **Web Dashboard**: HTML5 browser-based camera scanning utilizing `html5-qrcode`, as well as drag-and-drop file uploads.
-* **Flutter Mobile App**: Real-time camera scanning via `mobile_scanner`, featuring a manual barcode lookup and emulator-friendly test buttons.
-
-### 2. Category-Aware Nutri-Score (FSA-NPS 2023+ Updated)
-* Auto-detects product categories (Beverages, Cheese, Red Meat, Fats/Oils/Nuts, and General Foods) from Open Food Facts `categories_tags`.
-* Implements official category-specific logic:
-  - **Red Meat**: Hard cap of `2` points on positive protein contribution.
-  - **Cheese**: Bypass negative points limit ($\ge 11$) to ensure protein is always counted.
-
-### 3. Allergen & Dietary Alert System
-* User profile configurations for dietary requirements (Vegan, Vegetarian) and common allergens (Gluten, Dairy, Peanuts, Nuts, Eggs, Soy, Fish, Shellfish).
-* Real-time warning checks on scans displaying prominent warning banners if violations are detected.
-
-### 4. Offline-Friendly Caching & Favorites
-* Persists scan history and favorite product logs locally on mobile devices using `shared_preferences` for offline lookup.
-
-### 5. AI-Powered Expert Analysis
-* Integrated Gemini 2.5 Flash API to parse raw ingredients list, analyze health impacts, compile health benefits, and output storage/consumption advice.
-
----
-
-## 📂 Project Architecture
-
-```text
-├── app.py                     # Flask web server & REST API endpoints
-├── food_scanner.py            # OCR, barcode processing, and Gemini AI pipeline
-├── nutriscore.py              # Category-aware Nutri-Score calculation module
-├── product_database.py        # Open Food Facts API client
-├── config.py                  # Environment config resolver
-├── requirements.txt           # Python backend dependencies
-├── Dockerfile                 # Backend containerization Dockerfile
-├── docker-compose.yml         # Containerized development composer
-├── static/ & templates/       # Web dashboard assets and markup
-├── food_scanner_mobile/       # Flutter Mobile Application
-│   ├── pubspec.yaml           # Flutter packages config
-│   ├── lib/
-│   │   ├── main.dart          # Mobile app boots & bottom nav shell
-│   │   ├── models/            # Product JSON parsers
-│   │   ├── services/          # Local persistence (SharedPreferences) & API clients
-│   │   ├── widgets/           # Nutri-Score graphic badges
-│   │   └── screens/           # Scan, Search, History, and Profile views
-│   └── README.md              # Flutter installation guide
-├── GCP_DEPLOY_GUIDE.md        # Cloud Run hosting instructions
-└── GITHUB_PUSH_GUIDE.md       # Git version control push manual
-```
-
----
-
-## 🚀 Local Installation & Setup
-
-### Part A: Python Flask Backend
-
-1. **Clone the repository and enter the directory**:
-   ```bash
-   git clone https://github.com/YOUR_USERNAME/worldwide-food-scanner.git
-   cd worldwide-food-scanner
-   ```
-
-2. **Set up a Virtual Environment**:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate       # On Linux/macOS
-   # venv\Scripts\activate        # On Windows
-   ```
-
-3. **Install Dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
-   *Note: If running OCR locally, make sure to install [Tesseract OCR](https://github.com/tesseract-ocr/tesseract) on your system.*
-
-4. **Environment Variables**:
-   Copy `.env.example` to `.env` and fill in your Google Gemini AI API key:
-   ```bash
-   copy .env.example .env          # Windows
-   # cp .env.example .env          # Linux/macOS
-   ```
-   Edit `.env`:
-   ```env
-   GEMINI_API_KEY=your_gemini_api_key_here
-   ```
-
-5. **Start Flask Server**:
-   ```bash
-   python app.py
-   ```
-   Open your browser to `http://localhost:5000` to view the web dashboard.
-
----
-
-### Part B: Flutter Mobile Application
-
-1. **Enter the mobile project directory**:
-   ```bash
-   cd food_scanner_mobile
-   ```
-
-2. **Fetch Flutter Dependencies**:
-   ```bash
-   flutter pub get
-   ```
-
-3. **Configure API Endpoint**:
-   Open `lib/services/api_service.dart`. By default, it is configured for the Android Emulator (`http://10.0.2.2:5000`). If testing on iOS Simulator, update to `http://localhost:5000`.
-
-4. **Run the App**:
-   Launch your emulator and execute:
-   ```bash
-   flutter run
-   ```
-   *Tip: Use the **Quick Simulator** buttons on the Scan tab to easily test results without a physical camera.*
-
----
-
-## 🐳 Containerization with Docker
-
-You can run the backend services in an isolated environment with Tesseract, OpenCV, and ZBar pre-installed:
+## Run locally
 
 ```bash
-# Build and run using Docker Compose
-docker-compose up --build -d
-
-# Check runtime logs
-docker-compose logs -f
-
-# Shut down container
-docker-compose down
+python -m venv venv
+source venv/bin/activate              # Windows: venv\Scripts\activate
+pip install -r requirements-dev.txt
+cp .env.example .env                  # optional: add GEMINI_API_KEY
+FLASK_DEBUG=1 python app.py           # http://127.0.0.1:5000
+pytest -q                             # run the tests
 ```
 
----
+## Deploy on Vercel
 
-## 🌐 Deploying the Backend
+1. Import the repo in Vercel (it uses `vercel.json`).
+2. In **Project → Settings → Environment Variables**, add what you need from `.env.example`. `GEMINI_API_KEY` is optional; `CONTACT_EMAIL` and `SITE_OWNER` are recommended (shown in the footer and policies).
+3. For rate limits that hold across Vercel's instances, add an Upstash Redis URL as `RATELIMIT_STORAGE_URI`.
+4. In Google Cloud, set a daily quota on the Gemini API as a hard spending limit.
 
-### Option 1: Vercel Serverless (Basic Hosting)
-The backend is configured for Vercel using [vercel.json](vercel.json).
-* **Live Deployment**: [https://food-product-scanner-main.vercel.app](https://food-product-scanner-main.vercel.app)
-* *Note: Vercel is best suited for dashboard serving and manual calculation routes. Tesseract OCR and Barcode decoding are not supported on Vercel due to system binary restrictions.*
+Docker / Cloud Run: `docker compose up` or `./deploy_gcp.sh` (listens on port 8080).
 
-### Option 2: Google Cloud Run (Recommended for Full Features)
-Deploy the containerized backend to Google Cloud Run to enable full image scanning and OCR capabilities:
-1. Ensure the `gcloud` CLI is logged in.
-2. Run the deployment script:
-   ```bash
-   ./deploy_gcp.sh      # On Linux/macOS
-   # deploy_gcp.bat     # On Windows
-   ```
-3. Set your `GEMINI_API_KEY` under the Cloud Run Service Variables tab in the Google Cloud Console.
-4. For step-by-step instructions, see the [GCP Deployment Guide](GCP_DEPLOY_GUIDE.md).
+## API (used by the mobile app)
 
----
+`POST /scan` with JSON `{"barcode": "8901058000290"}` or a multipart `image` file. Returns `{success, dashboard, result, open_food_facts, ...}`; errors return `{success: false, error}` with a 4xx/5xx status.
 
-## 📄 License
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+## Security
+
+- No secrets in code; the Gemini key is read from the environment and sent in a request header, never in a URL.
+- Same-origin check on POST requests, rate limits (30 scans/min, 8 photos/min, 60 photos/day per IP) and a daily AI cap.
+- Uploads limited to 4 MB and verified as real JPEG/PNG/WebP images; never written to disk.
+- Strict Content-Security-Policy, HSTS, `X-Frame-Options`, `nosniff`, `Referrer-Policy`, `Permissions-Policy`.
+- All product data is rendered as text (no `innerHTML`), so it can't inject scripts.
+- Debug mode is off unless `FLASK_DEBUG=1`.
+
+## Licences
+
+MIT (this project, see `LICENSE`). Bundled: html5-qrcode (Apache-2.0, `static/vendor`), Outfit and Inter fonts (SIL OFL 1.1, `static/fonts`). Data: Open Food Facts (ODbL).

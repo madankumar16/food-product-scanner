@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Nutri-Score calculator — {{ site.name }}{% endblock %}
+{% block description %}Work out a food's Nutri-Score (A to E) from its nutrition label, using the 2023 algorithm.{% endblock %}
+
+{% block content %}
+<div class="wrap page-head">
+    <h1>Nutri-Score calculator</h1>
+    <p class="lead">Enter the values per 100 g (or 100 ml) from the nutrition label.</p>
+</div>
+
+<div class="wrap grid-2">
+    <section class="panel" aria-labelledby="calc-title">
+        <h2 id="calc-title" class="visually-hidden">Nutrition values</h2>
+        <form id="calc-form" novalidate>
+            <div class="field-grid">
+                <div class="field">
+                    <label for="category">Food type</label>
+                    <select id="category" name="category">
+                        <option value="general_foods">General food</option>
+                        <option value="beverage">Drink</option>
+                        <option value="cheese">Cheese</option>
+                        <option value="red_meat">Red meat</option>
+                        <option value="fats_oils_nuts">Oil, fat, nuts or seeds</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="energy_unit">Energy unit</label>
+                    <select id="energy_unit" name="energy_unit">
+                        <option value="kcal">kcal</option>
+                        <option value="kj">kJ</option>
+                    </select>
+                </div>
+                {% for id, label, hint in [
+                    ('energy_kj', 'Energy', ''),
+                    ('fat', 'Total fat (g)', 'Needed for oils, fats and nuts'),
+                    ('sat_fat', 'Saturated fat (g)', ''),
+                    ('sugars', 'Sugars (g)', ''),
+                    ('salt', 'Salt (g)', 'Sodium × 2.5'),
+                    ('fiber', 'Fibre (g)', ''),
+                    ('protein', 'Protein (g)', ''),
+                    ('fruit_veg_percentage', 'Fruit, veg & legumes (%)', 'Estimate from the ingredients')] %}
+                <div class="field">
+                    <label for="{{ id }}">{{ label }}</label>
+                    <input id="{{ id }}" name="{{ id }}" type="number" inputmode="decimal" min="0" step="any" {% if hint %}aria-describedby="{{ id }}-hint"{% endif %}>
+                    {% if hint %}<span class="hint" id="{{ id }}-hint">{{ hint }}</span>{% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            <div class="check">
+                <input id="sweeteners" name="sweeteners" type="checkbox" value="true">
+                <label for="sweeteners">Drink contains sweeteners (e.g. aspartame, sucralose)</label>
+            </div>
+            <button class="btn" type="submit">Calculate</button>
+            <p class="status-msg" id="status" role="status" aria-live="polite"></p>
+        </form>
+    </section>
+
+    <section class="panel" aria-labelledby="out-title" id="result-panel" tabindex="-1">
+        <h2 id="out-title" class="h3">Result</h2>
+        <div id="result"><p class="muted">Your grade will appear here.</p></div>
+    </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/nutriscore.js') }}" defer></script>
+{% endblock %}

@@ -1,111 +1,40 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Foodscanner Vercel App</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
-</head>
-<body>
-    <script>
-        (function() {
-            const savedTheme = localStorage.getItem('theme');
-            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
-                document.body.classList.add('dark');
-            }
-        })();
-    </script>
-    <nav class="navbar">
-        <a href="{{ url_for('dashboard') }}" class="navbar-brand">
-            <svg width="32" height="32" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect width="48" height="48" rx="12" fill="#0d9488"/>
-                <path d="M24 14V34M14 24H34" stroke="white" stroke-width="4" stroke-linecap="round"/>
-            </svg>
-            <span>Foodscanner</span>
-        </a>
-        <div class="navbar-menu">
-            <a href="{{ url_for('dashboard') }}" class="navbar-link">Dashboard</a>
-            <a href="{{ url_for('history') }}" class="navbar-link active">History</a>
-        </div>
-        <div class="navbar-search" style="margin: 0 20px; flex: 1; max-width: 400px; position: relative;">
-            <div style="position: relative; width: 100%;">
-                <input type="text" id="navSearchInput" placeholder="Quick barcode lookup..." style="width: 100%; padding: 8px 16px 8px 36px; border: 1px solid var(--border-color); border-radius: 20px; font-size: 14px; background: var(--bg-color); color: var(--text-primary); transition: all 0.3s ease;">
-                <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); opacity: 0.5;">🔍</span>
-            </div>
-        </div>
-        <div class="navbar-user" style="display: flex; align-items: center; gap: 16px;">
-            <button id="themeToggleBtn" class="btn-secondary" style="padding: 8px; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-size: 18px; border: 1px solid var(--border-color); cursor: pointer; transition: all 0.2s;" title="Toggle Theme">
-                <span id="themeToggleIcon">🌙</span>
-            </button>
-            <div class="user-info">
-                <div class="user-name">{{ username }}</div>
-                <div class="user-role">User</div>
-            </div>
-        </div>
-    </nav>
+{% extends "base.html" %}
+{% block title %}Scan history — {{ site.name }}{% endblock %}
+{% block description %}Your recent scans and saved products. Stored only in this browser.{% endblock %}
 
-    <div class="container">
-        <div class="page-header">
-            <h1>Scan History</h1>
-            <p>Your previous food product scans</p>
-        </div>
+{% block content %}
+<div class="wrap page-head">
+    <h1>Your history</h1>
+    <p class="lead">Saved only in this browser. Nothing is kept on our server.</p>
+</div>
 
-        <div class="card">
-            <div class="card-header">
-                <h2>Recent Scans</h2>
-            </div>
-            <div class="card-body">
-                {% if scans %}
-                    {% for scan in scans %}
-                    <div class="scan-item">
-                        <h3>{{ scan.product_name }}</h3>
-                        <p><strong>Brand:</strong> {{ scan.brand }}</p>
-                        <p><strong>Status:</strong> <span class="badge badge-{{ scan.safety_color.lower() }}">{{ scan.veg_status }} - {{ scan.safety_color }}</span></p>
-                        <p><strong>Score:</strong> {{ scan.safety_score }}/100</p>
-                        <p><strong>Date:</strong> {{ scan.timestamp }}</p>
-                        <a href="{{ url_for('scan_details', scan_id=scan.id) }}" class="btn btn-sm btn-primary">View Details</a>
-                    </div>
-                    {% endfor %}
-                {% else %}
-                    <p>No scans yet. Start scanning to see your history here.</p>
-                {% endif %}
-            </div>
-        </div>
-
-        <a href="{{ url_for('dashboard') }}" class="btn btn-primary">New Scan</a>
+<div class="wrap grid-2">
+    <div>
+        <section class="panel" aria-labelledby="recent-title">
+            <h2 id="recent-title" class="h3">Recent scans</h2>
+            <ul class="items" id="recent-list"></ul>
+            <p class="empty is-hidden" id="recent-empty">No scans yet. <a href="{{ url_for('index') }}">Scan a product</a>.</p>
+        </section>
+        <section class="panel" aria-labelledby="fav-title">
+            <h2 id="fav-title" class="h3">Saved products</h2>
+            <ul class="items" id="fav-list"></ul>
+            <p class="empty is-hidden" id="fav-empty">Nothing saved yet. Use "Save product" on a result.</p>
+        </section>
+        <section class="panel" aria-labelledby="clear-title">
+            <h2 id="clear-title" class="h3">Delete my data</h2>
+            <p>Remove all scans and saved products from this browser.</p>
+            <button class="btn" type="button" id="clear-btn">Delete history</button>
+            <p class="status-msg" id="clear-status" role="status" aria-live="polite"></p>
+        </section>
     </div>
+    <section class="panel" aria-labelledby="result-title" id="result-panel" tabindex="-1">
+        <h2 id="result-title" class="h3">Details</h2>
+        <div id="result"><p class="muted">Choose a product to see its details.</p></div>
+    </section>
+</div>
+{% endblock %}
 
-    <script>
-        // Sync theme button icon state on load
-        (function() {
-            const savedTheme = localStorage.getItem('theme');
-            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            const themeToggleIcon = document.getElementById('themeToggleIcon');
-            if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
-                themeToggleIcon.textContent = '☀️';
-            } else {
-                themeToggleIcon.textContent = '🌙';
-            }
-        })();
-        
-        document.getElementById('themeToggleBtn').addEventListener('click', function() {
-            document.body.classList.toggle('dark');
-            const isDark = document.body.classList.contains('dark');
-            localStorage.setItem('theme', isDark ? 'dark' : 'light');
-            document.getElementById('themeToggleIcon').textContent = isDark ? '☀️' : '🌙';
-        });
-
-        // Global search redirect
-        document.getElementById('navSearchInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                const barcode = this.value.trim();
-                if (barcode) {
-                    window.location.href = '/dashboard?search=' + encodeURIComponent(barcode);
-                }
-            }
-        });
-    </script>
-</body>
-</html>
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/render.js') }}" defer></script>
+<script src="{{ url_for('static', filename='js/history.js') }}" defer></script>
+{% endblock %}

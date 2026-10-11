@@ -56,7 +56,7 @@ gcloud run deploy "$SERVICE_NAME" \
     --platform managed \
     --region "$REGION" \
     --allow-unauthenticated \
-    --port 5000
+    --port 8080
 
 # Get Service URL
 SERVICE_URL=$(gcloud run services describe "$SERVICE_NAME" --platform managed --region "$REGION" --format 'value(status.url)')

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Terms of Use — {{ site.name }}{% endblock %}
+{% block description %}The rules for using {{ site.name }}.{% endblock %}
+
+{% block content %}
+<article class="prose">
+    <h1>Terms of Use</h1>
+    <p class="muted">Last updated {{ site.policy_date }}</p>
+    <p>By using {{ site.name }} you agree to these terms.</p>
+
+    <h2>Information, not advice</h2>
+    <p>Results come from Open Food Facts{% if ai_enabled %} and automated label reading{% endif %}. They can be incomplete or wrong. Allergen and vegetarian checks are automatic and can miss things.</p>
+    <p><strong>If you have an allergy, a medical condition or a dietary or religious requirement, always read the product pack.</strong> Nothing here is medical advice.</p>
+
+    <h2>Scores</h2>
+    <p>The Nutri-Score is calculated with the 2023 algorithm from the nutrition data available. The "ingredient score" is our own simple rule-based guide. It is not a food-safety rating.</p>
+
+    <h2>Price</h2>
+    <p>The service is free. There are no subscriptions, hidden fees or purchases.</p>
+
+    <h2>Fair use</h2>
+    <p>Don't overload, attack or scrape the service. We limit request rates to keep it running for everyone.</p>
+
+    <h2>Data licence</h2>
+    <p>Product data is from <a href="https://world.openfoodfacts.org" rel="noopener">Open Food Facts</a>, available under the Open Database Licence (ODbL).</p>
+
+    <h2>No warranty</h2>
+    <p>The service is provided "as is". As far as the law allows, we aren't liable for losses from using it.</p>
+
+    <h2>Law</h2>
+    <p>These terms are governed by the laws of India.</p>
+
+    <h2>Contact</h2>
+    {% include "legal/_contact.html" %}
+</article>
+{% endblock %}

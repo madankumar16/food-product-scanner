@@ -1,0 +1,10 @@
+.git
+.github
+.env
+.env.*
+**/__pycache__
+tests
+docs
+food_scanner_mobile
+venv
+.venv*
