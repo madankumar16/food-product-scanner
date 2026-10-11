@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Scan from a photo — {{ site.name }}{% endblock %}
+{% block description %}Take or choose a photo of a barcode or QR code{% if ai_enabled %} or ingredients label{% endif %} and check what it is. Photos are not stored.{% endblock %}
+
+{% block content %}
+<div class="page-head">
+    <h1>Photo</h1>
+    <p class="lead">Take a photo of a barcode or QR code{% if ai_enabled %}, or of the ingredients label{% endif %}. Our server reads small or blurry codes better than the live camera.</p>
+</div>
+
+<section class="panel" aria-labelledby="photo-title">
+    <h2 id="photo-title" class="visually-hidden">Choose a photo</h2>
+    <div class="choice">
+        <label class="btn">
+            <svg class="icon" aria-hidden="true"><use href="#i-camera"/></svg>Take photo
+            <input type="file" id="camera-input" accept="image/jpeg,image/png,image/webp" capture="environment">
+        </label>
+        <label class="btn btn-ghost">
+            <svg class="icon" aria-hidden="true"><use href="#i-upload"/></svg>Gallery
+            <input type="file" id="photo-input" accept="image/jpeg,image/png,image/webp">
+        </label>
+    </div>
+    <div class="drop mt" id="drop">Or drop a photo here</div>
+    <img id="photo-preview" class="preview is-hidden" alt="Selected photo">
+    <div class="controls">
+        <button class="btn full" type="button" id="photo-btn" disabled>Check this photo</button>
+    </div>
+    <p class="status-msg" id="status" role="status" aria-live="polite"></p>
+</section>
+
+<p class="note">The photo is checked on our server and then deleted. We don't keep it.</p>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/scan.js') }}" defer></script>
+{% endblock %}

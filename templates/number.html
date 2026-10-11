@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Type a code — {{ site.name }}{% endblock %}
+{% block description %}Type a barcode number, ISBN or the text of a QR code to check it. Food, cosmetics, pet food, household products, books, links and payments.{% endblock %}
+
+{% block content %}
+<div class="page-head">
+    <h1>Number</h1>
+    <p class="lead">Type the digits under a barcode, an ISBN, or any text or link from a code.</p>
+</div>
+
+<section class="panel" aria-labelledby="type-title">
+    <h2 id="type-title" class="visually-hidden">Type a code</h2>
+    <form id="barcode-form" novalidate>
+        <div class="field">
+            <label for="barcode-input">Barcode number or code text</label>
+            <input id="barcode-input" name="barcode" autocomplete="off" spellcheck="false" maxlength="4096"
+                   aria-describedby="barcode-hint" required>
+            <span class="hint" id="barcode-hint">For example 8901058000290, or an ISBN like 9780140449136.</span>
+        </div>
+        <button class="btn full" type="submit">Check it</button>
+    </form>
+    <p class="status-msg" id="status" role="status" aria-live="polite"></p>
+</section>
+
+<p class="note">Product details come from Open Food Facts, Open Beauty Facts, Open Pet Food Facts, Open Products Facts and Open Library. Everything else is read from the code itself. Automatic checks can miss things. Always read the pack if you have an allergy.</p>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/scan.js') }}" defer></script>
+{% endblock %}

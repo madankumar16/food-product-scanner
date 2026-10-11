@@ -147,7 +147,31 @@ def inject_site():
 # --------------------------------------------------------------------------
 @app.route("/")
 def index():
-    return render_template("scan.html")
+    """Home: the camera."""
+    return render_template("home.html")
+
+
+@app.route("/number")
+def number_page():
+    """Type a barcode number, ISBN or any code text."""
+    return render_template("number.html")
+
+
+@app.route("/photo")
+def photo_page():
+    """Take a photo or choose one from the gallery."""
+    return render_template("photo.html")
+
+
+@app.route("/result")
+def result_page():
+    """'Barcode' tab: the latest scan (kept only in this browser)."""
+    return render_template("result.html")
+
+
+@app.route("/settings")
+def settings_page():
+    return render_template("settings.html")
 
 
 @app.route("/dashboard")
@@ -270,10 +294,13 @@ def api_nutri_score():
 @limiter.limit("20 per minute")
 def api_report_pdf():
     data = request.get_json(silent=True)
-    if not isinstance(data, dict) or not isinstance(data.get("dashboard"), dict):
+    ok = isinstance(data, dict) and (isinstance(data.get("dashboard"), dict)
+                                     or (data.get("kind") in ("product", "book", "code") and isinstance(data.get("code"), dict)))
+    if not ok:
         return scan_error("No scan result to turn into a report.", 400)
     pdf = build_pdf(data, SITE["name"])
-    name = "".join(c if c.isalnum() else "_" for c in str(data["dashboard"].get("Product Name", "product")))[:60] or "product"
+    title = (data.get("dashboard") or {}).get("Product Name") or data.get("title") or "scan"
+    name = "".join(c if c.isalnum() else "_" for c in str(title))[:60] or "scan"
     return send_file(__import__("io").BytesIO(pdf), mimetype="application/pdf",
                      as_attachment=True, download_name=f"{name}_report.pdf")
 

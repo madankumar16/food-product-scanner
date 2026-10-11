@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}{{ site.name }} — Check any barcode or QR code{% endblock %}
+{% block description %}Scan any barcode or QR code before you use it: food, cosmetics, pet food, household products, books, medicine expiry dates, links and UPI payments. Free, no sign-up.{% endblock %}
+
+{% block content %}
+<h1 class="visually-hidden">Scan a barcode or QR code</h1>
+
+<button class="scan-cta" type="button" id="camera-btn">
+    <svg class="icon" aria-hidden="true"><use href="#i-scan"/></svg><span id="camera-label">Scan</span>
+</button>
+
+<section class="camera-box" id="camera-box" aria-label="Camera">
+    <div id="reader"></div>
+    <span class="live-pill is-hidden" id="live-pill"><span class="dot" aria-hidden="true"></span>Camera live</span>
+    <button class="torch-btn is-hidden" type="button" id="torch-btn" aria-pressed="false">
+        <svg class="icon" aria-hidden="true"><use href="#i-bolt"/></svg><span class="visually-hidden">Flash</span>
+    </button>
+    <div class="scan-frame" aria-hidden="true"><i></i><i></i><i></i><i></i><span class="laser"></span></div>
+    <p class="cam-hint" id="camera-hint">Press Scan to turn on the camera</p>
+</section>
+
+<p class="status-msg home-status" id="status" role="status" aria-live="polite"></p>
+
+<a class="score-card" id="score-card" href="{{ url_for('result_page') }}">
+    <p class="eyebrow">Last scan</p>
+    <p class="score-name">No scan yet</p>
+    <p class="muted">Scan any barcode or QR code and the result shows here.</p>
+</a>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='vendor/html5-qrcode.min.js') }}" defer></script>
+<script src="{{ url_for('static', filename='js/scan.js') }}" defer></script>
+<script src="{{ url_for('static', filename='js/home.js') }}" defer></script>
+{% endblock %}
