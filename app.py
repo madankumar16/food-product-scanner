@@ -1,5 +1,5 @@
 """
-Food Product Scanner — Flask app (runs on Vercel, Docker or locally).
+Scan Before Use — Flask app (runs on Vercel, Docker or locally).
 
 All configuration comes from environment variables; see .env.example.
 The site stores no personal data: scan history lives in the visitor's own
@@ -19,6 +19,7 @@ from werkzeug.exceptions import HTTPException
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 import ai_label
+import codes
 import food_scanner
 from nutriscore import NutriScoreCategory, calculate_nutri_score
 from report_pdf import build_pdf
@@ -44,7 +45,7 @@ if env_flag("TRUST_PROXY", True):
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 
 SITE = {
-    "name": os.environ.get("SITE_NAME", "Food Product Scanner"),
+    "name": os.environ.get("SITE_NAME", "Scan Before Use"),
     "owner": os.environ.get("SITE_OWNER", "").strip(),
     "email": os.environ.get("CONTACT_EMAIL", "").strip(),
     "phone": os.environ.get("CONTACT_PHONE", "").strip(),
@@ -95,7 +96,9 @@ def same_origin_for_api():
 def security_headers(resp):
     csp = (
         "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; "
-        "img-src 'self' data: blob: https://images.openfoodfacts.org https://images.openfoodfacts.net; "
+        "img-src 'self' data: blob: https://images.openfoodfacts.org https://images.openfoodfacts.net "
+        "https://images.openbeautyfacts.org https://images.openpetfoodfacts.org https://images.openproductsfacts.org "
+        "https://covers.openlibrary.org; "
         "media-src 'self' blob:; font-src 'self'; connect-src 'self'; object-src 'none'; "
         "base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
     )
@@ -205,9 +208,12 @@ def scan():
         if "image" in request.files:
             return scan_photo()
         data = request.get_json(silent=True)
-        if not isinstance(data, dict) or not data.get("barcode"):
-            return scan_error("Send a barcode, or a photo in the 'image' field.", 400)
-        return jsonify(food_scanner.scan_barcode(str(data.get("barcode"))[:32]))
+        # {"code": <scanned text>, "format": "QR_CODE"}; older clients send {"barcode": ...}
+        text = data.get("code") or data.get("barcode") if isinstance(data, dict) else None
+        if not isinstance(text, (str, int)) or not str(text).strip():
+            return scan_error("Send the scanned code as 'code', or a photo in the 'image' field.", 400)
+        fmt = data.get("format") if isinstance(data.get("format"), str) else None
+        return jsonify(food_scanner.scan_code(str(text)[:codes.MAX_CODE_LENGTH + 1], fmt and fmt[:40]))
     except food_scanner.ScanError as err:
         return scan_error(err.message, err.status)
     except HTTPException:

@@ -1,4 +1,4 @@
-// Scan page: camera (in-browser barcode reading), photo upload, typed barcode.
+// Scan page: camera (in-browser reading of any barcode or QR code), photo upload, typed code.
 (function () {
     'use strict';
     var status = FPS.statusFn(document.getElementById('status'));
@@ -54,15 +54,15 @@
     var input = document.getElementById('barcode-input');
     form.addEventListener('submit', function (e) {
         e.preventDefault();
-        var code = input.value.replace(/[\s-]/g, '');
-        if (!/^\d{8,14}$/.test(code)) {
-            status('Enter the 8–14 digits printed under the barcode.', 'err');
+        var code = input.value.trim();
+        if (!code) {
+            status('Type the numbers under the barcode, or the text of the code.', 'err');
             input.setAttribute('aria-invalid', 'true');
             input.focus();
             return;
         }
         input.removeAttribute('aria-invalid');
-        send({ barcode: code });
+        send({ code: code, format: 'typed' });
     });
 
     // ---------- photo ----------
@@ -122,17 +122,21 @@
         if (!window.isSecureContext) { status('The camera only works over https.', 'err'); return; }
         cameraBtn.disabled = true;
         status('Asking for camera permission…');
+        // No format list: every barcode and 2D code the library knows (QR, Data Matrix, PDF417,
+        // Aztec, EAN/UPC, Code 128/39/93, ITF, Codabar, GS1 DataBar...).
         scanner = scanner || new Html5Qrcode('reader', {
-            formatsToSupport: [Html5QrcodeSupportedFormats.EAN_13, Html5QrcodeSupportedFormats.EAN_8,
-                               Html5QrcodeSupportedFormats.UPC_A, Html5QrcodeSupportedFormats.UPC_E],
-            verbose: false
+            verbose: false,
+            experimentalFeatures: { useBarCodeDetectorIfSupported: true }
         });
         try {
-            await scanner.start({ facingMode: 'environment' }, { fps: 10, qrbox: { width: 260, height: 140 } }, onCode, function () {});
+            await scanner.start({ facingMode: 'environment' }, {
+                fps: 10,
+                qrbox: function (w, h) { var s = Math.floor(Math.min(w, h) * 0.8); return { width: Math.min(w - 20, Math.floor(s * 1.25)), height: s }; }
+            }, onCode, function () {});
             running = true;
             placeholder.classList.add('is-hidden');
             cameraLabel.textContent = 'Stop camera';
-            status('Point the camera at a barcode.');
+            status('Point the camera at any barcode or QR code.');
         } catch (e) {
             status('Camera access was blocked or no camera was found. Try "Photo" or "Type it".', 'err');
         }
@@ -145,13 +149,14 @@
         placeholder.classList.remove('is-hidden');
         cameraLabel.textContent = 'Start camera';
     }
-    function onCode(text) {
-        var code = String(text).replace(/\D/g, '');
-        if (!/^\d{8,14}$/.test(code) || code === lastCode || busy) return;
+    function onCode(text, result) {
+        var code = String(text || '');
+        if (!code.trim() || code === lastCode || busy) return;
         lastCode = code;
         setTimeout(function () { lastCode = null; }, 4000);
+        var format = result && result.result && result.result.format && result.result.format.formatName;
         stopCamera();
-        send({ barcode: code });
+        send({ code: code, format: typeof format === 'string' ? format : null });
     }
     cameraBtn.addEventListener('click', function () { if (running) stopCamera(); else startCamera(); });
     window.addEventListener('pagehide', stopCamera);
