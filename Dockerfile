@@ -1,33 +1,12 @@
-# Use an official lightweight Python runtime as a parent image
-FROM python:3.10-slim
-
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-
-# Set the working directory in the container
+FROM python:3.12-slim
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1 PORT=8080
+RUN useradd --create-home --uid 1000 appuser
 WORKDIR /app
-
-# Install system dependencies required for OpenCV, pyzbar, and Tesseract OCR
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    libzbar0 \
-    tesseract-ocr \
-    libgl1-mesa-glx \
-    libglib2.0-0 \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy requirements file first for caching optimization
-COPY requirements.txt /app/
-
-# Install python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy the rest of the application code
-COPY . /app/
-
-# Expose port 5000 for the Flask server
-EXPOSE 5000
-
-# Run the Flask app
-CMD ["python", "app.py"]
+COPY requirements.txt requirements-dev.txt ./
+RUN pip install -r requirements.txt gunicorn==26.2.0
+COPY --chown=appuser:appuser *.py ./
+COPY --chown=appuser:appuser templates ./templates
+COPY --chown=appuser:appuser static ./static
+USER appuser
+EXPOSE 8080
+CMD gunicorn --workers 2 --threads 8 --bind 0.0.0.0:${PORT} --timeout 60 app:app

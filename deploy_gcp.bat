@@ -53,7 +53,7 @@ echo Submitting build to Google Cloud Build...
 gcloud builds submit --tag gcr.io/%PROJECT_ID%/%SERVICE_NAME%
 
 echo Deploying container to Google Cloud Run...
-gcloud run deploy %SERVICE_NAME% --image gcr.io/%PROJECT_ID%/%SERVICE_NAME% --platform managed --region %REGION% --allow-unauthenticated --port 5000
+gcloud run deploy %SERVICE_NAME% --image gcr.io/%PROJECT_ID%/%SERVICE_NAME% --platform managed --region %REGION% --allow-unauthenticated --port 8080
 
 echo ==========================================================
 echo SUCCESS: Food Scanner Backend deployed to Google Cloud Run!

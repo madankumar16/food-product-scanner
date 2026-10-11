@@ -1,32 +1,20 @@
 """
-Nutri-Score Calculator (Python)
-Supports basic + category-aware logic (General Foods, Beverages, etc.)
-Based on official FSA-NPS / Santé publique France updated algorithm principles.
-"""
+Nutri-Score calculator following the 2023 updated algorithm published by
+Santé publique France (foods, cheese, red meat, fats/oils/nuts/seeds and
+beverages). Values are per 100 g (or 100 ml for drinks).
 
-from enum import Enum
-from typing import List, Optional, Dict, Any
+Every threshold table below is "lower bounds": a value strictly greater than
+the n-th bound earns n points.
+"""
 import logging
+import re
+from bisect import bisect_left
+from enum import Enum
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
 
-
-def configure_logging(level: int = logging.INFO) -> None:
-    """
-    Configures a basic console logging handler for the nutriscore module.
-    Useful when importing the module or running it standalone.
-    """
-    # Remove existing StreamHandlers to avoid duplicate logs if configured multiple times
-    for handler in list(logger.handlers):
-        if isinstance(handler, logging.StreamHandler):
-            logger.removeHandler(handler)
-            
-    handler = logging.StreamHandler()
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
-    logger.setLevel(level)
 
 class NutriScoreCategory(Enum):
     GENERAL_FOODS = "general_foods"
@@ -36,170 +24,67 @@ class NutriScoreCategory(Enum):
     BEVERAGE = "beverage"
 
 
-def map_to_nutriscore_category(
-    categories_tags: Optional[List[str]] = None,
-    product_name: str = "",
-    fallback_to_general: bool = True
-) -> NutriScoreCategory:
-    """
-    Safely maps Open Food Facts categories_tags to Nutri-Score category
-    with robust error handling for missing or malformed data.
-    """
-    try:
-        # Handle missing, None, or non-list input
-        if categories_tags is None:
-            categories_tags = []
-        elif not isinstance(categories_tags, list):
-            logger.warning(f"Invalid categories_tags type: {type(categories_tags)}. Using fallback.")
-            categories_tags = []
-        
-        # Normalize tags
-        tags = {str(t).lower().strip() for t in categories_tags if t}
-        
-        if not tags and product_name:
-            logger.info(f"No categories_tags found for product: {product_name}. Using name-based hints.")
-            prod_name_lower = product_name.lower()
-            # 1. Beverages
-            if any(kw in prod_name_lower for kw in ["water", "juice", "soda", "cola", "milk", "beverage", "drink"]):
-                return NutriScoreCategory.BEVERAGE
-            # 2. Cheese
-            if any(kw in prod_name_lower for kw in ["cheese", "cheddar", "mozzarella", "parmesan", "gouda", "brie"]):
-                return NutriScoreCategory.CHEESE
-            # 3. Red Meat
-            if any(kw in prod_name_lower for kw in ["beef", "pork", "lamb", "goat", "steak", "mutton", "ham", "bacon", "salami"]):
-                return NutriScoreCategory.RED_MEAT
-            # 4. Fats, Oils, Nuts & Seeds
-            if any(kw in prod_name_lower for kw in ["oil", "butter", "margarine", "fat", "nut", "seed", "olive"]):
-                return NutriScoreCategory.FATS_OILS_NUTS
-        
-        # === Priority Checks ===
-        
-        # 1. Beverages (highest priority for liquid products)
-        beverage_keywords = {"en:beverages", "en:plant-based-beverages", "en:milks", 
-                           "en:fruit-juices", "en:sodas", "en:water", "en:alcoholic-beverages"}
-        if any(kw in tags for kw in beverage_keywords):
-            return NutriScoreCategory.BEVERAGE
-        
-        # 2. Cheese
-        if any(kw in tags for kw in {"en:cheeses", "en:cheese", "en:soft-cheeses", "en:hard-cheeses"}):
-            return NutriScoreCategory.CHEESE
-        
-        # 3. Red Meat
-        red_meat_keywords = {"en:beef", "en:pork", "en:lamb", "en:goat-meat", 
-                           "en:red-meats", "en:processed-meat", "en:charcuterie"}
-        if any(kw in tags for kw in red_meat_keywords):
-            return NutriScoreCategory.RED_MEAT
-        
-        # 4. Fats, Oils, Nuts & Seeds
-        fat_keywords = {"en:fats", "en:vegetable-oils", "en:olive-oils", "en:butters", 
-                       "en:margarines", "en:nuts", "en:seeds", "en:oil-and-fat"}
-        if any(kw in tags for kw in fat_keywords) or any("fat" in t or "oil" in t for t in tags):
-            return NutriScoreCategory.FATS_OILS_NUTS
-        
-        # 5. Default
-        if not tags and fallback_to_general:
-            logger.info(f"No usable category tags found for '{product_name or 'unknown'}'. Defaulting to GENERAL_FOODS.")
-        
-        return NutriScoreCategory.GENERAL_FOODS
+def _points(value: float, bounds: List[float], values: Optional[List[int]] = None) -> int:
+    """Points = number of bounds the value strictly exceeds (or mapped value)."""
+    idx = bisect_left(bounds, value)  # count of bounds < value
+    if values is not None:
+        return values[idx]
+    return idx
 
-    except Exception as e:
-        logger.error(f"Error in category mapping: {e}. Defaulting to GENERAL_FOODS.")
-        return NutriScoreCategory.GENERAL_FOODS
+# ---------------- Foods (also cheese and red meat) ----------------
+FOOD_ENERGY = [335, 670, 1005, 1340, 1675, 2010, 2345, 2680, 3015, 3350]          # 0–10
+FOOD_SUGARS = [3.4, 6.8, 10, 14, 17, 20, 24, 27, 31, 34, 37, 41, 44, 48, 51]       # 0–15
+SAT_FAT = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]                                          # 0–10
+SALT = [0.2 * i for i in range(1, 21)]                                             # 0–20
+FOOD_PROTEIN = [2.4, 4.8, 7.2, 9.6, 12, 14, 17]                                    # 0–7
+FIBRE = [3.0, 4.1, 5.2, 6.3, 7.4]                                                  # 0–5
+FOOD_FVL_BOUNDS, FOOD_FVL_VALUES = [40, 60, 80], [0, 1, 2, 5]
+
+# ---------------- Fats, oils, nuts and seeds ----------------
+SAT_ENERGY = [120 * i for i in range(1, 11)]                                       # kJ from sat. fat, 0–10
+SAT_RATIO = [10, 16, 22, 28, 34, 40, 46, 52, 58, 64]                               # % sat/total fat, 0–10
+
+# ---------------- Beverages ----------------
+BEV_ENERGY = [30, 90, 150, 210, 240, 270, 300, 330, 360, 390]                      # 0–10
+BEV_SUGARS = [0.5, 2, 3.5, 5, 6, 7, 8, 9, 10, 11]                                  # 0–10
+BEV_PROTEIN = [1.2, 1.5, 1.8, 2.1, 2.4, 2.7, 3.0]                                  # 0–7
+BEV_FVL_BOUNDS, BEV_FVL_VALUES = [40, 60, 80], [0, 2, 4, 6]
 
 
-def get_energy_points(energy_kj: float) -> int:
-    """Negative points for energy (kJ/100g or 100ml)"""
-    if energy_kj <= 335: return 0
-    elif energy_kj <= 670: return 1
-    elif energy_kj <= 1005: return 2
-    elif energy_kj <= 1340: return 3
-    elif energy_kj <= 1675: return 4
-    elif energy_kj <= 2010: return 5
-    elif energy_kj <= 2345: return 6
-    elif energy_kj <= 2680: return 7
-    elif energy_kj <= 3015: return 8
-    elif energy_kj <= 3350: return 9
-    else: return 10
+def _ratio_points(sat_fat: float, fat: float) -> int:
+    if fat <= 0:
+        return 0
+    ratio = 100.0 * sat_fat / fat
+    # "< 10 → 0, < 16 → 1 ..." — a ratio exactly on a bound moves up a band
+    return sum(1 for b in SAT_RATIO if ratio >= b)
 
 
-def get_saturated_fat_points(sat_fat: float) -> int:
-    """Negative points for saturated fat (g/100g)"""
-    if sat_fat <= 1: return 0
-    elif sat_fat <= 2: return 1
-    elif sat_fat <= 3: return 2
-    elif sat_fat <= 4: return 3
-    elif sat_fat <= 5: return 4
-    elif sat_fat <= 6: return 5
-    elif sat_fat <= 7: return 6
-    elif sat_fat <= 8: return 7
-    elif sat_fat <= 9: return 8
-    elif sat_fat <= 10: return 9
-    else: return 10
-
-
-def get_sugars_points(sugars: float) -> int:
-    """Negative points for sugars (g/100g) - updated scale up to 15"""
-    if sugars <= 4.5: return 0
-    elif sugars <= 9: return 1
-    elif sugars <= 13.5: return 2
-    elif sugars <= 18: return 3
-    elif sugars <= 22.5: return 4
-    elif sugars <= 27: return 5
-    elif sugars <= 31: return 6
-    elif sugars <= 36: return 7
-    elif sugars <= 40: return 8
-    elif sugars <= 45: return 9
-    elif sugars <= 50: return 10
-    elif sugars <= 55: return 12
-    elif sugars <= 60: return 13
-    elif sugars <= 65: return 14
-    else: return 15
-
-
-def get_salt_points(salt: float) -> int:
-    """Negative points for salt (g/100g) - updated up to 20"""
-    if salt <= 0.3: return 0
-    elif salt <= 0.6: return 1
-    elif salt <= 0.9: return 2
-    elif salt <= 1.2: return 3
-    elif salt <= 1.5: return 4
-    elif salt <= 1.8: return 5
-    elif salt <= 2.1: return 6
-    elif salt <= 2.4: return 7
-    elif salt <= 2.7: return 8
-    elif salt <= 3.0: return 9
-    elif salt <= 3.3: return 10
-    else: return min(20, int((salt - 0.3) / 0.15) + 1)
-
-
-def get_fiber_points(fiber: float) -> int:
-    """Positive points for fiber (g/100g)"""
-    if fiber <= 0.9: return 0
-    elif fiber <= 1.9: return 1
-    elif fiber <= 2.8: return 2
-    elif fiber <= 3.7: return 3
-    elif fiber <= 4.7: return 4
-    else: return 5
-
-
-def get_protein_points(protein: float) -> int:
-    """Positive points for protein (g/100g)"""
-    if protein <= 1.6: return 0
-    elif protein <= 3.2: return 1
-    elif protein <= 4.8: return 2
-    elif protein <= 6.4: return 3
-    elif protein <= 8.0: return 4
-    elif protein <= 9.6: return 5
-    elif protein <= 11.2: return 6
-    else: return 7
-
-
-def get_fruit_veg_points(percentage: float) -> int:
-    """Positive points for fruits, vegetables, legumes (%)"""
-    if percentage <= 40: return 0
-    elif percentage <= 60: return 1
-    elif percentage <= 80: return 2
-    else: return 5
+def _letter(score: int, category: NutriScoreCategory, is_water: bool) -> str:
+    if category == NutriScoreCategory.BEVERAGE:
+        if is_water:
+            return "A"
+        if score <= 2:
+            return "B"
+        if score <= 6:
+            return "C"
+        if score <= 9:
+            return "D"
+        return "E"
+    if category == NutriScoreCategory.FATS_OILS_NUTS:
+        if score <= -6:
+            return "A"
+        if score <= 2:
+            return "B"
+    else:
+        if score <= 0:
+            return "A"
+        if score <= 2:
+            return "B"
+    if score <= 10:
+        return "C"
+    if score <= 18:
+        return "D"
+    return "E"
 
 
 def calculate_nutri_score(
@@ -210,80 +95,89 @@ def calculate_nutri_score(
     fiber: float = 0.0,
     protein: float = 0.0,
     fruit_veg_percentage: float = 0.0,
-    is_beverage: bool = False,
-    is_cheese: bool = False,
-    is_fat_oil: bool = False,
     category: Optional[NutriScoreCategory] = None,
-    has_non_nutritive_sweeteners: bool = False
-) -> dict:
-    """
-    Main calculation function.
-    Returns score, letter, and breakdown.
-    """
-    # Fallback to map old boolean category flags if category is not provided
-    if category is None:
-        if is_cheese:
-            category = NutriScoreCategory.CHEESE
-        elif is_beverage:
-            category = NutriScoreCategory.BEVERAGE
-        elif is_fat_oil:
-            category = NutriScoreCategory.FATS_OILS_NUTS
-        else:
-            category = NutriScoreCategory.GENERAL_FOODS
+    fat: Optional[float] = None,
+    has_non_nutritive_sweeteners: bool = False,
+    is_water: bool = False,
+) -> Dict[str, Any]:
+    """Return the score, letter and per-component points."""
+    category = category or NutriScoreCategory.GENERAL_FOODS
+    breakdown: Dict[str, int] = {}
 
-    # Negative points (A points)
-    neg_energy = get_energy_points(energy_kj)
-    neg_sat_fat = get_saturated_fat_points(sat_fat)
-    neg_sugars = get_sugars_points(sugars)
-    neg_salt = get_salt_points(salt)
-    
-    negative_points = neg_energy + neg_sat_fat + neg_sugars + neg_salt
-
-    # Positive points (C points)
-    pos_fiber = get_fiber_points(fiber)
-    pos_protein = get_protein_points(protein)
-    
-    # Red meat protein capping rule
-    if category == NutriScoreCategory.RED_MEAT:
-        pos_protein = min(pos_protein, 2)
-        
-    pos_fvl = get_fruit_veg_points(fruit_veg_percentage)
-    
-    positive_points = pos_fiber + pos_protein + pos_fvl
-
-    # Special rules
-    if negative_points >= 11 and category != NutriScoreCategory.CHEESE:
-        positive_points = min(positive_points, pos_fiber + pos_fvl)  # protein may be limited
-
-    final_score = negative_points - positive_points
-
-    # Letter mapping
-    if final_score <= -1:
-        letter = "A"
-    elif final_score <= 2:
-        letter = "B"
-    elif final_score <= 10:
-        letter = "C"
-    elif final_score <= 18:
-        letter = "D"
+    if category == NutriScoreCategory.BEVERAGE:
+        breakdown["energy"] = _points(energy_kj, BEV_ENERGY)
+        breakdown["sugars"] = _points(sugars, BEV_SUGARS)
+        breakdown["sat_fat"] = _points(sat_fat, SAT_FAT)
+        breakdown["salt"] = _points(salt, SALT)
+        breakdown["sweeteners"] = 4 if has_non_nutritive_sweeteners else 0
+        breakdown["protein"] = _points(protein, BEV_PROTEIN)
+        breakdown["fiber"] = _points(fiber, FIBRE)
+        breakdown["fruit_veg"] = _points(fruit_veg_percentage, BEV_FVL_BOUNDS, BEV_FVL_VALUES)
+        negative = breakdown["energy"] + breakdown["sugars"] + breakdown["sat_fat"] + breakdown["salt"] + breakdown["sweeteners"]
+        positive = breakdown["protein"] + breakdown["fiber"] + breakdown["fruit_veg"]
     else:
-        letter = "E"
+        if category == NutriScoreCategory.FATS_OILS_NUTS:
+            breakdown["energy"] = _points(sat_fat * 37.0, SAT_ENERGY)       # energy from saturates
+            breakdown["sat_fat"] = _ratio_points(sat_fat, fat if fat is not None else 0.0)
+        else:
+            breakdown["energy"] = _points(energy_kj, FOOD_ENERGY)
+            breakdown["sat_fat"] = _points(sat_fat, SAT_FAT)
+        breakdown["sugars"] = _points(sugars, FOOD_SUGARS)
+        breakdown["salt"] = _points(salt, SALT)
+        breakdown["protein"] = _points(protein, FOOD_PROTEIN)
+        if category == NutriScoreCategory.RED_MEAT:
+            breakdown["protein"] = min(breakdown["protein"], 2)
+        breakdown["fiber"] = _points(fiber, FIBRE)
+        breakdown["fruit_veg"] = _points(fruit_veg_percentage, FOOD_FVL_BOUNDS, FOOD_FVL_VALUES)
+        negative = breakdown["energy"] + breakdown["sat_fat"] + breakdown["sugars"] + breakdown["salt"]
+        protein_limit = 7 if category == NutriScoreCategory.FATS_OILS_NUTS else 11
+        if category != NutriScoreCategory.CHEESE and negative >= protein_limit:
+            positive = breakdown["fiber"] + breakdown["fruit_veg"]       # protein not counted
+            breakdown["protein_counted"] = 0
+        else:
+            positive = breakdown["protein"] + breakdown["fiber"] + breakdown["fruit_veg"]
+            breakdown["protein_counted"] = 1
 
+    score = negative - positive
     return {
-        "final_score": final_score,
-        "letter": letter,
-        "negative_points": negative_points,
-        "positive_points": positive_points,
-        "breakdown": {
-            "energy": neg_energy,
-            "sat_fat": neg_sat_fat,
-            "sugars": neg_sugars,
-            "salt": neg_salt,
-            "fiber": pos_fiber,
-            "protein": pos_protein,
-            "fruit_veg": pos_fvl
-        }
+        "final_score": score,
+        "letter": _letter(score, category, is_water),
+        "negative_points": negative,
+        "positive_points": positive,
+        "category": category.value,
+        "breakdown": breakdown,
     }
+
+
+_NAME_HINTS = [
+    (NutriScoreCategory.BEVERAGE, r"\b(water|juice|soda|cola|drink|beverage|lassi|buttermilk|milk|tea|coffee)\b"),
+    (NutriScoreCategory.CHEESE, r"\b(cheese|cheddar|mozzarella|parmesan|gouda|brie|paneer)\b"),
+    (NutriScoreCategory.RED_MEAT, r"\b(beef|pork|lamb|mutton|goat|steak|ham|bacon|salami)\b"),
+    (NutriScoreCategory.FATS_OILS_NUTS, r"\b(oil|ghee|butter|margarine|almonds?|cashews?|walnuts?|peanuts?|seeds?)\b"),
+]
+_TAGS = {
+    NutriScoreCategory.BEVERAGE: {"en:beverages", "en:plant-based-beverages", "en:milks", "en:fruit-juices",
+                                  "en:sodas", "en:waters", "en:teas", "en:coffees"},
+    NutriScoreCategory.CHEESE: {"en:cheeses"},
+    NutriScoreCategory.RED_MEAT: {"en:beef", "en:pork", "en:lamb-meat", "en:goat-meat", "en:red-meats"},
+    NutriScoreCategory.FATS_OILS_NUTS: {"en:fats", "en:vegetable-oils", "en:olive-oils", "en:butters",
+                                        "en:margarines", "en:nuts", "en:seeds", "en:ghee"},
+}
+
+
+def map_to_nutriscore_category(categories_tags: Optional[List[str]] = None,
+                               product_name: str = "") -> NutriScoreCategory:
+    tags = {str(t).lower().strip() for t in (categories_tags or []) if t}
+    for category in (NutriScoreCategory.BEVERAGE, NutriScoreCategory.CHEESE,
+                     NutriScoreCategory.RED_MEAT, NutriScoreCategory.FATS_OILS_NUTS):
+        if tags & _TAGS[category]:
+            return category
+    if not tags and product_name:
+        name = product_name.lower()
+        for category, pattern in _NAME_HINTS:
+            if re.search(pattern, name):
+                return category
+    return NutriScoreCategory.GENERAL_FOODS
 
 
 def calculate_nutri_score_safe(
@@ -296,70 +190,27 @@ def calculate_nutri_score_safe(
     fruit_veg_percentage: Optional[float] = 0.0,
     categories_tags: Optional[List[str]] = None,
     product_name: str = "",
-    has_non_nutritive_sweeteners: bool = False
+    fat: Optional[float] = None,
+    has_non_nutritive_sweeteners: bool = False,
 ) -> Dict[str, Any]:
-    """
-    Safe wrapper around calculate_nutri_score with full error handling
-    and automatic category detection.
-    """
+    """Clean the inputs, detect the category and calculate. Never raises."""
+    def clean(v, hi=None):
+        try:
+            v = max(0.0, float(v or 0))
+        except (TypeError, ValueError):
+            v = 0.0
+        return min(v, hi) if hi is not None else v
     try:
-        # Clean input values (handle None, negative, or missing)
-        energy_kj = max(0.0, float(energy_kj or 0))
-        sat_fat = max(0.0, float(sat_fat or 0))
-        sugars = max(0.0, float(sugars or 0))
-        salt = max(0.0, float(salt or 0))
-        fiber = max(0.0, float(fiber or 0))
-        protein = max(0.0, float(protein or 0))
-        fruit_veg_percentage = max(0.0, min(100.0, float(fruit_veg_percentage or 0)))
-
-        # Auto-detect category with error handling
-        category = map_to_nutriscore_category(
-            categories_tags=categories_tags,
-            product_name=product_name
+        category = map_to_nutriscore_category(categories_tags, product_name)
+        result = calculate_nutri_score(
+            energy_kj=clean(energy_kj), sat_fat=clean(sat_fat), sugars=clean(sugars), salt=clean(salt),
+            fiber=clean(fiber), protein=clean(protein), fruit_veg_percentage=clean(fruit_veg_percentage, 100),
+            category=category, fat=clean(fat) if fat is not None else None,
+            has_non_nutritive_sweeteners=has_non_nutritive_sweeteners,
+            is_water="en:waters" in {str(t).lower() for t in (categories_tags or [])},
         )
-
-        # Now calculate
-        score_data = calculate_nutri_score(
-            energy_kj=energy_kj,
-            sat_fat=sat_fat,
-            sugars=sugars,
-            salt=salt,
-            fiber=fiber,
-            protein=protein,
-            fruit_veg_percentage=fruit_veg_percentage,
-            category=category,
-            has_non_nutritive_sweeteners=has_non_nutritive_sweeteners
-        )
-
-        score_data["product_name"] = product_name
-        score_data["mapped_category"] = category.value
-        return score_data
-
-    except Exception as e:
-        logger.error(f"Nutri-Score calculation failed: {e}")
-        return {
-            "final_score": None,
-            "letter": "N/A",
-            "error": str(e),
-            "negative_points": 0,
-            "positive_points": 0,
-            "mapped_category": "unknown"
-        }
-
-
-if __name__ == "__main__":
-    # Configure logging for direct execution
-    configure_logging(logging.DEBUG)
-    logger.info("Running standalone Nutri-Score calculation test...")
-    test_result = calculate_nutri_score_safe(
-        energy_kj=2278,
-        sat_fat=11,
-        sugars=56.3,
-        salt=0.272,
-        protein=6.3,
-        fiber=3,
-        fruit_veg_percentage=13,
-        categories_tags=["en:sweet-snacks", "en:biscuits-and-cakes"],
-        product_name="Standalone Test Product"
-    )
-    logger.info(f"Test calculation completed: {test_result['letter']} (Score: {test_result['final_score']})")
+        result["mapped_category"] = category.value
+        return result
+    except Exception:  # pragma: no cover - defensive
+        logger.exception("Nutri-Score calculation failed")
+        return {"final_score": None, "letter": None, "mapped_category": "unknown"}

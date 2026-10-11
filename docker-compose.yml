@@ -1,13 +1,8 @@
-version: '3.8'
-
 services:
-  backend:
+  web:
     build: .
-    container_name: food_scanner_backend
     ports:
-      - "5000:5000"
-    volumes:
-      - .:/app
+      - "8080:8080"
     env_file:
       - .env
-    restart: always
+    restart: unless-stopped

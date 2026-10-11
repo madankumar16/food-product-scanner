@@ -1,0 +1,91 @@
+"""Build a PDF report from a scan result. Stateless: nothing is stored on the server."""
+from datetime import datetime, timezone
+from io import BytesIO
+from typing import Any, Dict, List
+from xml.sax.saxutils import escape
+
+from reportlab.lib import colors
+from reportlab.lib.enums import TA_CENTER
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+from reportlab.lib.units import mm
+from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+
+INK = colors.HexColor("#111827")
+BRAND = colors.HexColor("#0f766e")
+LINE = colors.HexColor("#d1d5db")
+
+
+def _t(value: Any, limit: int = 300) -> str:
+    """Plain text, length-limited and escaped for ReportLab's mini-markup."""
+    text = "" if value is None else str(value)
+    return escape(text[:limit])
+
+
+def _list(value: Any, limit: int = 150) -> List[str]:
+    return [str(v) for v in value[:limit]] if isinstance(value, list) else []
+
+
+def build_pdf(result: Dict[str, Any], site_name: str) -> bytes:
+    d = result.get("dashboard") if isinstance(result.get("dashboard"), dict) else {}
+    off = result.get("open_food_facts") if isinstance(result.get("open_food_facts"), dict) else {}
+
+    styles = getSampleStyleSheet()
+    h1 = ParagraphStyle("h1", parent=styles["Heading1"], textColor=INK, fontSize=20, spaceAfter=4)
+    h2 = ParagraphStyle("h2", parent=styles["Heading2"], textColor=BRAND, fontSize=13, spaceBefore=10, spaceAfter=6)
+    body = ParagraphStyle("body", parent=styles["BodyText"], textColor=INK, fontSize=10, leading=14)
+    small = ParagraphStyle("small", parent=body, fontSize=8, textColor=colors.HexColor("#374151"), alignment=TA_CENTER)
+
+    story = [
+        Paragraph(_t(d.get("Product Name"), 150), h1),
+        Paragraph(_t(d.get("Brand"), 100), body),
+        Paragraph("Report created " + datetime.now(timezone.utc).strftime("%d %b %Y, %H:%M UTC"), body),
+        Spacer(1, 6 * mm),
+    ]
+
+    rows = [
+        ["Barcode", _t(off.get("barcode") or "—", 20)],
+        ["Vegetarian status", f"{_t(d.get('Veg Status'), 40)} — {_t(d.get('Veg Reason'), 120)}"],
+        ["Nutri-Score", _t(off.get("nutriscore") or "Not enough data", 20)],
+        ["NOVA group", _t(off.get("nova_group") or "—", 5)],
+        ["Ingredient score", f"{_t(d.get('Safety Score'))}/100" if d.get("Safety Score") is not None else "Not available"],
+    ]
+    table = Table([[Paragraph(f"<b>{k}</b>", body), Paragraph(v, body)] for k, v in rows],
+                  colWidths=[45 * mm, 120 * mm])
+    table.setStyle(TableStyle([("GRID", (0, 0), (-1, -1), 0.5, LINE), ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                               ("TOPPADDING", (0, 0), (-1, -1), 5), ("BOTTOMPADDING", (0, 0), (-1, -1), 5)]))
+    story.append(table)
+
+    ingredients = _list(d.get("Ingredients"))
+    story += [Paragraph(f"Ingredients ({len(ingredients)})", h2),
+              Paragraph(", ".join(_t(i, 200) for i in ingredients) or "No ingredients list available.", body)]
+
+    allergens = _list(d.get("Allergens"), 30)
+    story += [Paragraph("Possible allergens", h2),
+              Paragraph(", ".join(_t(a, 60) for a in allergens) or "None detected in the ingredients text.", body)]
+
+    flags = _list(d.get("Flags"), 30)
+    story += [Paragraph("Ingredients to watch", h2),
+              Paragraph(", ".join(_t(f, 80) for f in flags) or "Nothing flagged.", body)]
+
+    nutr = off.get("nutriments") if isinstance(off.get("nutriments"), dict) else {}
+    labels = [("energy-kcal_100g", "Energy", "kcal"), ("fat_100g", "Fat", "g"), ("saturated-fat_100g", "Saturated fat", "g"),
+              ("carbohydrates_100g", "Carbohydrates", "g"), ("sugars_100g", "Sugars", "g"), ("fiber_100g", "Fibre", "g"),
+              ("proteins_100g", "Protein", "g"), ("salt_100g", "Salt", "g")]
+    nrows = [[name, f"{float(nutr[key]):.1f} {unit}"] for key, name, unit in labels
+             if isinstance(nutr.get(key), (int, float))]
+    if nrows:
+        story.append(Paragraph("Nutrition per 100 g / 100 ml", h2))
+        nt = Table(nrows, colWidths=[60 * mm, 40 * mm])
+        nt.setStyle(TableStyle([("GRID", (0, 0), (-1, -1), 0.5, LINE), ("FONTSIZE", (0, 0), (-1, -1), 10)]))
+        story.append(nt)
+
+    story += [Spacer(1, 10 * mm),
+              Paragraph("Data from Open Food Facts (ODbL) and the product label. Allergen and vegetarian checks are "
+                        "automatic and can miss things: always read the pack. Not medical advice.", small),
+              Paragraph(_t(site_name, 80), small)]
+
+    buf = BytesIO()
+    SimpleDocTemplate(buf, pagesize=A4, topMargin=18 * mm, bottomMargin=18 * mm,
+                      leftMargin=20 * mm, rightMargin=20 * mm, title="Food product report").build(story)
+    return buf.getvalue()

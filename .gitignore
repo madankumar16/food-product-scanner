@@ -40,10 +40,11 @@ ENV/
 *temp*.json
 *.log
 
-# Environment variables - IMPORTANT!
+# Environment variables - IMPORTANT! Never commit real keys.
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
+.venv*/
 
 # OS
 .DS_Store

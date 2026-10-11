@@ -1,28 +1,8 @@
-# Web Framework
-Flask>=3.0.0
-Flask-Session>=0.5.0
-
-# Core dependencies
-opencv-python>=4.8.0
-numpy>=1.24.0
-
-# Barcode detection
-pyzbar>=0.1.9
-Pillow>=10.0.0
-
-# OCR
-pytesseract>=0.3.10
-
-# PDF generation
-reportlab>=4.0.0
-
-# Optional: For better OCR results
-# tesseract-ocr (system package, not pip installable)
-# Install separately: https://github.com/tesseract-ocr/tesseract
-
-# API integration
-requests>=2.31.0
-
-# Environment variables (for .env file support)
-python-dotenv>=1.0.0
-
+# Pinned versions (checked October 2026). Update deliberately, then re-test.
+flask==3.1.3
+werkzeug==3.1.9
+flask-limiter==4.1.1
+requests==2.34.2
+pillow==12.3.0
+reportlab==5.0.1
+zxing-cpp==3.1.1

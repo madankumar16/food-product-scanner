@@ -1,0 +1,8 @@
+tests/
+docs/
+food_scanner_mobile/
+Dockerfile
+docker-compose.yml
+deploy_gcp.sh
+deploy_gcp.bat
+.env*

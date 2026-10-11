@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}{{ site.name }} — Check ingredients, allergens and veg status{% endblock %}
+{% block description %}Scan or type a food barcode to see ingredients, possible allergens, vegetarian status and Nutri-Score. Free, no sign-up.{% endblock %}
+
+{% block content %}
+<div class="wrap page-head">
+    <h1>Know what's in your food.</h1>
+    <p class="lead">Scan a barcode to see ingredients, allergens, veg status and Nutri-Score.</p>
+</div>
+
+<div class="wrap grid-2">
+    <section class="panel" aria-labelledby="scan-title">
+        <h2 id="scan-title" class="h3">Scan a product</h2>
+        <div class="tabs" role="tablist" aria-label="How to scan">
+            <button class="tab" role="tab" id="tab-camera" aria-controls="pane-camera" aria-selected="true">Camera</button>
+            <button class="tab" role="tab" id="tab-photo" aria-controls="pane-photo" aria-selected="false" tabindex="-1">Photo</button>
+            <button class="tab" role="tab" id="tab-type" aria-controls="pane-type" aria-selected="false" tabindex="-1">Type it</button>
+        </div>
+
+        <div role="tabpanel" id="pane-camera" aria-labelledby="tab-camera">
+            <div class="camera-box">
+                <p id="camera-placeholder">Your camera is off. Press the button, then point it at a barcode.</p>
+                <div id="reader"></div>
+            </div>
+            <div class="controls">
+                <button class="btn" type="button" id="camera-btn">
+                    <svg class="icon" aria-hidden="true"><use href="#i-camera"/></svg><span id="camera-label">Start camera</span>
+                </button>
+            </div>
+        </div>
+
+        <div role="tabpanel" id="pane-photo" aria-labelledby="tab-photo" class="is-hidden">
+            <label class="drop" id="drop">
+                <svg class="icon" aria-hidden="true"><use href="#i-upload"/></svg>
+                <span>Choose or drop a photo of the barcode{% if ai_enabled %} or ingredients label{% endif %}</span>
+                <input type="file" id="photo-input" accept="image/jpeg,image/png,image/webp">
+            </label>
+            <img id="photo-preview" class="preview is-hidden" alt="Selected photo">
+            <div class="controls">
+                <button class="btn" type="button" id="photo-btn" disabled>Check this photo</button>
+            </div>
+        </div>
+
+        <div role="tabpanel" id="pane-type" aria-labelledby="tab-type" class="is-hidden">
+            <form id="barcode-form" novalidate>
+                <div class="field">
+                    <label for="barcode-input">Barcode number</label>
+                    <input id="barcode-input" name="barcode" inputmode="numeric" autocomplete="off" pattern="[0-9]{8,14}" maxlength="14"
+                           aria-describedby="barcode-hint" required>
+                    <span class="hint" id="barcode-hint">The 8–14 digits under the barcode.</span>
+                </div>
+                <button class="btn" type="submit">Look up product</button>
+            </form>
+        </div>
+
+        <p class="status-msg" id="status" role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="panel" aria-labelledby="result-title" id="result-panel" tabindex="-1">
+        <h2 id="result-title" class="h3">Result</h2>
+        <div id="result">
+            <p class="muted">Scan a product to see its details here.</p>
+        </div>
+    </section>
+</div>
+
+<section class="section">
+    <div class="wrap">
+        <p class="note">Results come from <a href="https://world.openfoodfacts.org" rel="noopener">Open Food Facts</a>{% if ai_enabled %} or from reading the label photo{% endif %}. Automatic checks can miss things. Always read the pack if you have an allergy.</p>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='vendor/html5-qrcode.min.js') }}" defer></script>
+<script src="{{ url_for('static', filename='js/render.js') }}" defer></script>
+<script src="{{ url_for('static', filename='js/scan.js') }}" defer></script>
+{% endblock %}

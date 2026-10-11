@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} — {{ site.name }}{% endblock %}
+{% block description %}{{ message }}{% endblock %}
+
+{% block content %}
+<div class="error-page">
+    <p class="code">ERROR {{ code }}</p>
+    <h1>{{ title }}</h1>
+    <p class="lead">{{ message }}</p>
+    <a class="btn" href="{{ url_for('index') }}">Back to scanning</a>
+</div>
+{% endblock %}
