@@ -144,6 +144,8 @@ def describe_gtin(digits: str, fmt: Optional[str] = None) -> Optional[Dict]:
     else:
         if len(digits) == 14 and digits[0] == "0":
             digits = digits[1:]  # GS1 codes pad EAN-13 (and UPC-A) to 14 digits with a leading 0
+        if fmt == "UPC-A" and len(digits) == 13 and digits[0] == "0":
+            digits = digits[1:]  # some decoders return UPC-A in its 13-digit EAN form
         kind = {8: "EAN-8", 12: "UPC-A", 13: "EAN-13", 14: "GTIN-14 (outer case or pack)"}[len(digits)]
 
     if len(digits) == 8:

@@ -250,6 +250,12 @@ def test_gs1_digital_link_is_looked_up(client):
     assert data["kind"] == "food" and "8901058000290.json" in get.call_args[0][0]
 
 
+def test_upca_read_as_13_digits_is_shown_as_upca():
+    info = codes.describe_gtin("0042100005264", "UPC-A")
+    assert info["gtin"] == "042100005264" and info["kind"] == "UPC-A"
+    assert info["lookup"] == "0042100005264"
+
+
 def test_upce_is_expanded():
     assert codes.upce_to_upca("04252614") == "042100005264"
     assert codes.describe_gtin("04252614", "UPC-E")["lookup"] == "0042100005264"

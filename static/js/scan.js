@@ -116,18 +116,42 @@
     var cameraLabel = document.getElementById('camera-label');
     var placeholder = document.getElementById('camera-placeholder');
     var scanner = null, running = false, lastCode = null;
+    var candidate = null, candidateHits = 0;
+
+    // Every symbology people meet in daily life. Left out on purpose: UPC/EAN
+    // add-on extensions (they read the small 2/5-digit block as its own code)
+    // and MaxiCode (parcel labels; the browser decoder can't read it anyway).
+    function cameraFormats() {
+        var F = Html5QrcodeSupportedFormats;
+        return [F.QR_CODE, F.DATA_MATRIX, F.AZTEC, F.PDF_417,
+                F.EAN_13, F.EAN_8, F.UPC_A, F.UPC_E,
+                F.CODE_128, F.CODE_39, F.CODE_93, F.ITF, F.CODABAR, F.RSS_14, F.RSS_EXPANDED]
+            .filter(function (f) { return f !== undefined; });
+    }
+
+    // EAN/UPC have a check digit and 2D codes have error correction, so one
+    // read is enough. Other 1D codes (Code 39, ITF, Codabar...) have no
+    // reliable check, and a blurry frame can produce a wrong value, so they
+    // must read the same twice in a row.
+    var SELF_CHECKING = /^(QR_CODE|DATA_MATRIX|AZTEC|PDF_417|EAN_13|EAN_8|UPC_A|UPC_E|RSS_14|RSS_EXPANDED|CODE_128)$/;
+    function gtinOk(digits) {
+        if (!/^(\d{8}|\d{12,14})$/.test(digits)) return false;
+        var sum = 0;
+        for (var i = digits.length - 2, w = 3; i >= 0; i--, w = 4 - w) sum += (+digits[i]) * w;
+        return (10 - sum % 10) % 10 === +digits[digits.length - 1];
+    }
 
     async function startCamera() {
         if (typeof Html5Qrcode === 'undefined') { status('The scanner could not load. Use "Type it" instead.', 'err'); return; }
         if (!window.isSecureContext) { status('The camera only works over https.', 'err'); return; }
         cameraBtn.disabled = true;
         status('Asking for camera permission…');
-        // No format list: every barcode and 2D code the library knows (QR, Data Matrix, PDF417,
-        // Aztec, EAN/UPC, Code 128/39/93, ITF, Codabar, GS1 DataBar...).
         scanner = scanner || new Html5Qrcode('reader', {
+            formatsToSupport: cameraFormats(),
             verbose: false,
             experimentalFeatures: { useBarCodeDetectorIfSupported: true }
         });
+        candidate = null;
         try {
             await scanner.start({ facingMode: 'environment' }, {
                 fps: 10,
@@ -151,12 +175,20 @@
     }
     function onCode(text, result) {
         var code = String(text || '');
-        if (!code.trim() || code === lastCode || busy) return;
+        if (!code.trim() || code === lastCode || busy || !running) return;
+        var format = result && result.result && result.result.format && result.result.format.formatName;
+        format = typeof format === 'string' ? format : '';
+        // EAN/UPC whose check digit fails is a misread: wait for a clean frame.
+        if (/^(EAN_13|EAN_8|UPC_A)$/.test(format) && !gtinOk(code)) return;
+        if (!SELF_CHECKING.test(format)) {
+            if (code !== candidate) { candidate = code; candidateHits = 1; return; }
+            if (++candidateHits < 2) return;
+        }
+        candidate = null;
         lastCode = code;
         setTimeout(function () { lastCode = null; }, 4000);
-        var format = result && result.result && result.result.format && result.result.format.formatName;
         stopCamera();
-        send({ code: code, format: typeof format === 'string' ? format : null });
+        send({ code: code, format: format || null });
     }
     cameraBtn.addEventListener('click', function () { if (running) stopCamera(); else startCamera(); });
     window.addEventListener('pagehide', stopCamera);
