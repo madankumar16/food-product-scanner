@@ -149,8 +149,11 @@ def _result(kind: str, title: str, source: str, code: Dict[str, Any], *, item=No
 
 
 def _product_item(product: Dict[str, Any], database: str) -> Dict[str, Any]:
-    facts = [["Brand", product.get("brand")], ["Quantity", product.get("quantity")]]
-    cats = [off_client.nice_tag(t) for t in (product.get("categories_tags") or [])[-3:]]
+    facts = [["Quantity", product.get("quantity")]]  # brand is already shown under the name
+    # Skip the databases' own bookkeeping tags such as "en:open-pet-food-facts".
+    tags = [t for t in product.get("categories_tags") or []
+            if not any(k in t.lower() for k in ("open-", "non-food", "products-not"))]
+    cats = [off_client.nice_tag(t) for t in tags[-3:]]
     if cats:
         facts.append(["Category", ", ".join(cats)])
     sections = [["Ingredients", product["ingredients_text"]]] if product.get("ingredients_text") else []
@@ -216,7 +219,8 @@ def scan_code(text: Any, fmt: Optional[str] = None) -> Dict[str, Any]:
     if len(text) > codes.MAX_CODE_LENGTH:
         raise ScanError("That code is too long to be a barcode or QR code.", 400)
     fmt_name = codes.format_name(fmt)
-    code = {"text": text, "format": fmt_name, "facts": [["Scanned as", fmt_name]] if fmt_name else []}
+    show_format = fmt_name and fmt_name != "Typed in"
+    code = {"text": text, "format": fmt_name, "facts": [["Scanned as", fmt_name]] if show_format else []}
 
     warning = None
     gtin = None
@@ -238,11 +242,11 @@ def scan_code(text: Any, fmt: Optional[str] = None) -> Dict[str, Any]:
     if gtin:
         info = codes.describe_gtin(gtin, fmt_name)
         if info:
-            n = 1 if fmt_name else 0
+            n = 1 if show_format else 0
             code["facts"] = code["facts"][:n] + info["facts"] + code["facts"][n:]
             return _lookup_gtin(info, code, warning)
         if gs1:
-            code["facts"].insert(1 if fmt_name else 0, ["Product number", gtin])
+            code["facts"].insert(1 if show_format else 0, ["Product number", gtin])
             return _result("code", "GS1 product code", "barcode", code, warning=warning,
                            notes=["The product number's check digit doesn't match, so it wasn't looked up."])
         if re.sub(r"[\s-]", "", text).isdigit():
