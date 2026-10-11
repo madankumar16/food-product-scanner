@@ -42,8 +42,9 @@ class _ScannerScreenState extends State<ScannerScreen> with WidgetsBindingObserv
   // Turn the camera off while the app is in the background.
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // The permission prompt itself makes the app "inactive"; ignore that.
-    if (!_scannerController.value.hasCameraPermission) return;
+    // Ignore lifecycle changes until the camera is set up (the permission prompt
+    // itself makes the app "inactive").
+    if (!_scannerController.value.isInitialized) return;
     if (state == AppLifecycleState.resumed) {
       _startCamera();
     } else if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
