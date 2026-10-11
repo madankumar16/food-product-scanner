@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Settings — {{ site.name }}{% endblock %}
+{% block description %}Your scan history, the Nutri-Score calculator, privacy and terms for {{ site.name }}. Your data stays on this device.{% endblock %}
+
+{% block content %}
+<div class="page-head">
+    <h1>Settings</h1>
+</div>
+
+<section class="panel" aria-labelledby="tools-title">
+    <h2 id="tools-title" class="h3">Tools</h2>
+    <ul class="settings-list">
+        <li><a href="{{ url_for('history') }}">History <span aria-hidden="true">›</span></a></li>
+        <li><a href="{{ url_for('nutri_score_page') }}">Nutri-Score calculator <span aria-hidden="true">›</span></a></li>
+    </ul>
+</section>
+
+<section class="panel" aria-labelledby="data-title">
+    <h2 id="data-title" class="h3">Your data</h2>
+    <p>No account, no tracking or advertising cookies. Your scans are saved only on this device.</p>
+    <button class="btn btn-ghost" type="button" id="clear-btn">Delete my scans</button>
+    <p class="status-msg" id="clear-status" role="status" aria-live="polite"></p>
+</section>
+
+<section class="panel" aria-labelledby="legal-title">
+    <h2 id="legal-title" class="h3">Legal</h2>
+    <ul class="settings-list">
+        <li><a href="{{ url_for('privacy') }}">Privacy policy <span aria-hidden="true">›</span></a></li>
+        <li><a href="{{ url_for('terms') }}">Terms of use <span aria-hidden="true">›</span></a></li>
+        <li><a href="{{ url_for('cookies') }}">Cookies <span aria-hidden="true">›</span></a></li>
+        <li><a href="{{ url_for('refunds') }}">Refunds <span aria-hidden="true">›</span></a></li>
+    </ul>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/settings.js') }}" defer></script>
+{% endblock %}

@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>{% block title %}{{ site.name }}{% endblock %}</title>
     <meta name="description" content="{% block description %}Scan before use: check any barcode or QR code. Food, cosmetics, pet food, household products, books, medicine expiry dates, links and payments.{% endblock %}">
-    <meta name="theme-color" content="#111827">
+    <meta name="theme-color" content="#f2f4ee">
     <link rel="icon" href="{{ url_for('static', filename='img/favicon.svg') }}" type="image/svg+xml">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/site.css') }}">
 </head>
@@ -16,52 +16,70 @@
         <symbol id="i-logo" viewBox="0 0 24 24"><path d="M4 7V5a1 1 0 0 1 1-1h2M17 4h2a1 1 0 0 1 1 1v2M20 17v2a1 1 0 0 1-1 1h-2M7 20H5a1 1 0 0 1-1-1v-2"/><path d="M8 8v8M11 8v8M14 8v8M17 8v8"/></symbol>
         <symbol id="i-camera" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></symbol>
         <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 15V4M7 9l5-5 5 5M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"/></symbol>
-        <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+        <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M4 19h16"/></symbol>
+        <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h5v-6h4v6h5V10"/></symbol>
+        <symbol id="i-hash" viewBox="0 0 24 24"><path d="M9 4L7 20M17 4l-2 16M4 9h16M3 15h16"/></symbol>
+        <symbol id="i-barcode" viewBox="0 0 24 24"><path d="M4 5v14M7 5v14M10 5v14M12 5v14M15 5v14M17 5v14M20 5v14"/></symbol>
+        <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol>
+        <symbol id="i-dots" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.6" fill="currentColor"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/><circle cx="12" cy="19" r="1.6" fill="currentColor"/></symbol>
+        <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 3L5 14h6l-1 7 8-11h-6z"/></symbol>
+        <symbol id="i-scan" viewBox="0 0 24 24"><path d="M4 7V5a1 1 0 0 1 1-1h2M17 4h2a1 1 0 0 1 1 1v2M20 17v2a1 1 0 0 1-1 1h-2M7 20H5a1 1 0 0 1-1-1v-2M4 12h16"/></symbol>
+        <symbol id="i-history" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></symbol>
+        <symbol id="i-result" viewBox="0 0 24 24"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M10 12h5M10 16h5"/></symbol>
+        <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M5 19c0-9 6-14 15-14 0 9-5 15-14 15"/><path d="M5 19l8-8"/></symbol>
     </svg>
 
-    <header class="site-header">
-        <nav class="wrap nav" aria-label="Main">
-            <a class="logo" href="{{ url_for('index') }}" aria-label="{{ site.name }} home">
-                <svg class="icon" aria-hidden="true"><use href="#i-logo"/></svg>{{ site.name }}
-            </a>
-            <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="nav-links">
-                <svg class="icon" aria-hidden="true"><use href="#i-menu"/></svg><span class="visually-hidden">Menu</span>
-            </button>
-            {% set ep = request.endpoint %}
-            <ul class="nav-links" id="nav-links">
-                <li><a href="{{ url_for('index') }}" {% if ep == 'index' %}aria-current="page"{% endif %}>Scan</a></li>
-                <li><a href="{{ url_for('history') }}" {% if ep == 'history' %}aria-current="page"{% endif %}>History</a></li>
-                <li><a href="{{ url_for('nutri_score_page') }}" {% if ep == 'nutri_score_page' %}aria-current="page"{% endif %}>Nutri-Score calculator</a></li>
-            </ul>
-        </nav>
-    </header>
-
-    <main id="main" tabindex="-1">
-        {% block content %}{% endblock %}
-    </main>
-
-    <footer class="site-footer">
-        <div class="wrap footer-grid">
+    <div class="app">
+        <header class="app-top">
             <div>
-                <p>&copy; {{ current_year }} {{ site.owner or site.name }}. Product data from <a href="https://world.openfoodfacts.org" rel="noopener">Open Food Facts</a>, <a href="https://world.openbeautyfacts.org" rel="noopener">Open Beauty Facts</a>, <a href="https://world.openpetfoodfacts.org" rel="noopener">Open Pet Food Facts</a>, <a href="https://world.openproductsfacts.org" rel="noopener">Open Products Facts</a> and <a href="https://openlibrary.org" rel="noopener">Open Library</a> (open licences).</p>
-                {% if site.address %}<p>{{ site.address }}</p>{% endif %}
-                {% if site.email %}<p><a href="mailto:{{ site.email }}">{{ site.email }}</a></p>{% endif %}
-                {% if site.phone %}<p><a href="tel:{{ site.phone | replace(' ', '') }}">{{ site.phone }}</a></p>{% endif %}
+                <p class="brand-title"><a href="{{ url_for('index') }}">{{ site.name }}</a></p>
+                <p class="brand-sub">Point at a barcode or label</p>
             </div>
+            <button class="menu-btn" type="button" id="menu-btn" aria-haspopup="true" aria-expanded="false" aria-controls="app-menu">
+                <svg class="icon" aria-hidden="true"><use href="#i-dots"/></svg><span class="visually-hidden">More options</span>
+            </button>
+            <ul class="menu is-hidden" id="app-menu">
+                <li><button type="button" id="pdf-btn" disabled><svg class="icon" aria-hidden="true"><use href="#i-download"/></svg>Download PDF report</button></li>
+                <li><a href="{{ url_for('history') }}"><svg class="icon" aria-hidden="true"><use href="#i-history"/></svg>History</a></li>
+                <li><a href="{{ url_for('nutri_score_page') }}"><svg class="icon" aria-hidden="true"><use href="#i-leaf"/></svg>Nutri-Score calculator</a></li>
+            </ul>
+        </header>
+
+        <main id="main" tabindex="-1">
+            {% block content %}{% endblock %}
+        </main>
+
+        <footer class="app-foot">
             <ul class="footer-links" aria-label="Legal">
                 <li><a href="{{ url_for('privacy') }}">Privacy</a></li>
                 <li><a href="{{ url_for('terms') }}">Terms</a></li>
                 <li><a href="{{ url_for('cookies') }}">Cookies</a></li>
                 <li><a href="{{ url_for('refunds') }}">Refunds</a></li>
             </ul>
-        </div>
-    </footer>
+            <p>&copy; {{ current_year }} {{ site.owner or site.name }}. Product data from <a href="https://world.openfoodfacts.org" rel="noopener">Open Food Facts</a>, <a href="https://world.openbeautyfacts.org" rel="noopener">Open Beauty Facts</a>, <a href="https://world.openpetfoodfacts.org" rel="noopener">Open Pet Food Facts</a>, <a href="https://world.openproductsfacts.org" rel="noopener">Open Products Facts</a> and <a href="https://openlibrary.org" rel="noopener">Open Library</a> (open licences).</p>
+            {% if site.address %}<p>{{ site.address }}</p>{% endif %}
+            {% if site.email %}<p><a href="mailto:{{ site.email }}">{{ site.email }}</a></p>{% endif %}
+            {% if site.phone %}<p><a href="tel:{{ site.phone | replace(' ', '') }}">{{ site.phone }}</a></p>{% endif %}
+        </footer>
+
+        {% set ep = request.endpoint %}
+        <nav class="bottom-nav" aria-label="Main">
+            <ul id="nav-links">
+                <li><a href="{{ url_for('index') }}" {% if ep == 'index' %}aria-current="page"{% endif %}><svg class="icon" aria-hidden="true"><use href="#i-home"/></svg>Home</a></li>
+                <li><a href="{{ url_for('number_page') }}" {% if ep == 'number_page' %}aria-current="page"{% endif %}><svg class="icon" aria-hidden="true"><use href="#i-hash"/></svg>Number</a></li>
+                <li><a href="{{ url_for('result_page') }}" {% if ep == 'result_page' %}aria-current="page"{% endif %}><svg class="icon" aria-hidden="true"><use href="#i-barcode"/></svg>Barcode</a></li>
+                <li><a href="{{ url_for('photo_page') }}" {% if ep == 'photo_page' %}aria-current="page"{% endif %}><svg class="icon" aria-hidden="true"><use href="#i-camera"/></svg>Photo</a></li>
+                <li><a href="{{ url_for('settings_page') }}" {% if ep == 'settings_page' %}aria-current="page"{% endif %}><svg class="icon" aria-hidden="true"><use href="#i-gear"/></svg>Settings</a></li>
+            </ul>
+        </nav>
+    </div>
 
     <div class="cookie-notice is-hidden" id="cookie-notice" role="region" aria-label="Cookie notice">
-        <p>This site uses no cookies. Your scan history is saved only in this browser. <a href="{{ url_for('cookies') }}">Details</a></p>
+        <p>We use no tracking or advertising cookies. Your scans are saved only on this device. <a href="{{ url_for('cookies') }}">Details</a></p>
         <button class="btn" type="button" id="cookie-ok">OK</button>
     </div>
 
+    <script src="{{ url_for('static', filename='js/render.js') }}" defer></script>
     <script src="{{ url_for('static', filename='js/site.js') }}" defer></script>
     {% block scripts %}{% endblock %}
 </body>

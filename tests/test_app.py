@@ -86,7 +86,8 @@ def test_security_headers(client):
 
 
 # ---------------- pages ----------------
-@pytest.mark.parametrize("path", ["/", "/history", "/nutri-score", "/privacy", "/terms", "/cookies", "/refunds"])
+@pytest.mark.parametrize("path", ["/", "/number", "/photo", "/result", "/settings", "/history", "/nutri-score",
+                                  "/privacy", "/terms", "/cookies", "/refunds"])
 def test_pages_have_title_description_favicon(client, path):
     r = client.get(path)
     html = r.get_data(as_text=True)
@@ -377,6 +378,22 @@ def test_photo_rate_limited(client):
 
 
 # ---------------- PDF ----------------
+def test_pdf_report_for_non_food_results(client):
+    with mock.patch("off_client.requests.get", return_value=FakeResp(200, {"status": 0})):
+        data = client.post("/scan", json={"code": "upi://pay?pa=a@b&pn=<b>x</b>"}).get_json()
+    r = client.post("/api/report/pdf", json=data)
+    assert r.status_code == 200 and r.data.startswith(b"%PDF")
+
+
+def test_home_has_scan_button_camera_and_menu(client):
+    html = client.get("/").get_data(as_text=True)
+    for needle in ('id="camera-btn"', 'id="camera-box"', 'id="torch-btn"', 'id="score-card"', 'id="app-menu"',
+                   "Download PDF report", "Point at a barcode or label"):
+        assert needle in html, needle
+    nav = html.split('id="nav-links"')[1].split("</ul>")[0]
+    assert [l for l in ("Home", "Number", "Barcode", "Photo", "Settings") if l in nav] == ["Home", "Number", "Barcode", "Photo", "Settings"]
+
+
 def test_pdf_report_is_stateless_and_escapes_text(client):
     with off_returns():
         data = client.post("/scan", json={"barcode": "8901058000290"}).get_json()

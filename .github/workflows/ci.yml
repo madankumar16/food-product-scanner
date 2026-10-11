@@ -42,7 +42,7 @@ jobs:
           manifest=android/app/src/main/AndroidManifest.xml
           sed -i 's/android:label="[^"]*"/android:label="Scan Before Use"/' "$manifest"
           # Release builds need these declared in the main manifest.
-          sed -i 's#<application#<uses-permission android:name="android.permission.INTERNET"/>\n    <uses-permission android:name="android.permission.CAMERA"/>\n    <application#' "$manifest"
+          sed -i 's#<application#<uses-permission android:name="android.permission.INTERNET"/>\n    <uses-permission android:name="android.permission.CAMERA"/>\n    <queries><intent><action android:name="android.intent.action.VIEW"/><data android:scheme="https"/></intent></queries>\n    <application#' "$manifest"
       - run: flutter pub get
       - run: flutter analyze --no-fatal-infos
       - run: flutter build apk --release

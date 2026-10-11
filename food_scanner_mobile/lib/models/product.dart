@@ -30,6 +30,7 @@ class Product {
   final String? link; // https link from a QR code, or a map link
   final String? database; // where the details came from
   final String? sourceUrl;
+  final Map<String, dynamic>? raw; // the server's full result, sent back for the PDF report
 
   Product({
     this.kind = 'food',
@@ -56,6 +57,7 @@ class Product {
     this.link,
     this.database,
     this.sourceUrl,
+    this.raw,
   });
 
   bool get isFood => kind == 'food';
@@ -114,6 +116,7 @@ class Product {
         warning: common.warning,
         notes: common.notes,
         codeFacts: common.codeFacts,
+        raw: json,
       );
     }
 
@@ -145,6 +148,7 @@ class Product {
       warning: common.warning,
       notes: common.notes,
       codeFacts: common.codeFacts,
+      raw: json,
     );
   }
 
@@ -173,6 +177,7 @@ class Product {
         'link': link,
         'database': database,
         'sourceUrl': sourceUrl,
+        'raw': raw,
       };
 
   factory Product.fromLocalJson(Map<String, dynamic> json) => Product(
@@ -203,5 +208,6 @@ class Product {
         link: _https(json['link']),
         database: _str(json['database']),
         sourceUrl: _https(json['sourceUrl']),
+        raw: json['raw'] is Map ? Map<String, dynamic>.from(json['raw']) : null,
       );
 }

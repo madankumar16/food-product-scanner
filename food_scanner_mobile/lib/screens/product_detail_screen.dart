@@ -8,11 +8,14 @@ import 'code_result_screen.dart';
 class ProductDetailScreen extends StatelessWidget {
   final Product product;
 
-  const ProductDetailScreen({Key? key, required this.product}) : super(key: key);
+  /// True when shown inside the Barcode tab (no back arrow).
+  final bool embedded;
+
+  const ProductDetailScreen({Key? key, required this.product, this.embedded = false}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    if (!product.isFood) return CodeResultScreen(product: product);
+    if (!product.isFood) return CodeResultScreen(product: product, embedded: embedded);
     final provider = Provider.of<ProductProvider>(context);
     final vegStatus = product.vegStatus ?? 'Not confirmed';
     final isNonVeg = vegStatus.toLowerCase().contains('non');
@@ -23,32 +26,35 @@ class ProductDetailScreen extends StatelessWidget {
     Color safetyColor;
     switch ((product.safetyColor ?? '').toUpperCase()) {
       case 'GREEN':
-        safetyColor = Colors.greenAccent.shade400;
+        safetyColor = Color(0xFF2E7D32);
         break;
       case 'YELLOW':
-        safetyColor = Colors.yellowAccent.shade400;
+        safetyColor = Color(0xFFFF6F00);
         break;
       case 'RED':
-        safetyColor = Colors.redAccent;
+        safetyColor = Color(0xFFD32F2F);
         break;
       default:
         safetyColor = Colors.grey;
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A), // Dark slate
+      backgroundColor: const Color(0xFFF2F4EE),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
+        automaticallyImplyLeading: false,
+        leading: embedded
+            ? null
+            : IconButton(
+                icon: const Icon(Icons.arrow_back, color: Color(0xFF17221C)),
+                onPressed: () => Navigator.pop(context),
+              ),
         actions: [
           IconButton(
             icon: Icon(
               isFav ? Icons.favorite : Icons.favorite_border,
-              color: isFav ? Colors.redAccent : Colors.white,
+              color: isFav ? Color(0xFFD32F2F) : Color(0xFF17221C),
               size: 28,
             ),
             onPressed: () {
@@ -79,7 +85,7 @@ class ProductDetailScreen extends StatelessWidget {
                 height: 180,
                 width: 180,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1E293B),
+                  color: const Color(0xFFFFFFFF),
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
@@ -96,9 +102,9 @@ class ProductDetailScreen extends StatelessWidget {
                           product.imageUrl!,
                           fit: BoxFit.contain,
                           errorBuilder: (context, error, stackTrace) =>
-                              const Icon(Icons.fastfood, size: 80, color: Colors.white30),
+                              const Icon(Icons.fastfood, size: 80, color: Color(0xFF8A968E)),
                         )
-                      : const Icon(Icons.fastfood, size: 80, color: Colors.white30),
+                      : const Icon(Icons.fastfood, size: 80, color: Color(0xFF8A968E)),
                 ),
               ),
             ),
@@ -114,7 +120,7 @@ class ProductDetailScreen extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: Color(0xFF17221C),
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -122,14 +128,14 @@ class ProductDetailScreen extends StatelessWidget {
                     product.brand ?? 'Brand not available',
                     style: const TextStyle(
                       fontSize: 16,
-                      color: Color(0xFF38BDF8), // Neon blue
+                      color: Color(0xFF1F6B45), // Neon blue
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                   const SizedBox(height: 6),
                   Text(
                     'Barcode: ${product.barcode}',
-                    style: const TextStyle(fontSize: 13, color: Colors.white38),
+                    style: const TextStyle(fontSize: 13, color: Color(0xFF6B7A70)),
                   ),
                 ],
               ),
@@ -142,12 +148,12 @@ class ProductDetailScreen extends StatelessWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.redAccent.withOpacity(0.12),
+                    color: Color(0xFFD32F2F).withOpacity(0.12),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.redAccent.withOpacity(0.5), width: 1.5),
+                    border: Border.all(color: Color(0xFFD32F2F).withOpacity(0.5), width: 1.5),
                   ),
                   child: Text(product.warning!,
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, height: 1.4)),
+                      style: const TextStyle(color: Color(0xFF17221C), fontWeight: FontWeight.bold, height: 1.4)),
                 ),
               ),
 
@@ -159,21 +165,21 @@ class ProductDetailScreen extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.redAccent.withOpacity(0.12),
+                    color: Color(0xFFD32F2F).withOpacity(0.12),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.redAccent.withOpacity(0.5), width: 1.5),
+                    border: Border.all(color: Color(0xFFD32F2F).withOpacity(0.5), width: 1.5),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.warning_amber_rounded, color: Colors.redAccent, size: 24),
+                          const Icon(Icons.warning_amber_rounded, color: Color(0xFFD32F2F), size: 24),
                           const SizedBox(width: 8),
                           const Text(
                             'Dietary Warning!',
                             style: TextStyle(
-                              color: Colors.redAccent,
+                              color: Color(0xFFD32F2F),
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
@@ -186,11 +192,11 @@ class ProductDetailScreen extends StatelessWidget {
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text('• ', style: TextStyle(color: Colors.redAccent, fontSize: 16)),
+                                const Text('• ', style: TextStyle(color: Color(0xFFD32F2F), fontSize: 16)),
                                 Expanded(
                                   child: Text(
                                     alert,
-                                    style: const TextStyle(color: Colors.white, fontSize: 13, height: 1.3),
+                                    style: const TextStyle(color: Color(0xFF17221C), fontSize: 13, height: 1.3),
                                   ),
                                 ),
                               ],
@@ -215,7 +221,7 @@ class ProductDetailScreen extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF1E293B),
+                        color: const Color(0xFFFFFFFF),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Column(
@@ -223,7 +229,7 @@ class ProductDetailScreen extends StatelessWidget {
                         children: [
                           const Text(
                             'Ingredient score',
-                            style: TextStyle(color: Colors.white70, fontSize: 13),
+                            style: TextStyle(color: Color(0xFF3D4A42), fontSize: 13),
                           ),
                           const SizedBox(height: 8),
                           Row(
@@ -252,7 +258,7 @@ class ProductDetailScreen extends StatelessWidget {
                           const SizedBox(height: 4),
                           Text(
                             product.safetyScore != null ? 'Score: ${product.safetyScore}/100' : 'No ingredients to score',
-                            style: const TextStyle(color: Colors.white54, fontSize: 12),
+                            style: const TextStyle(color: Color(0xFF4A5A50), fontSize: 12),
                           ),
                         ],
                       ),
@@ -264,7 +270,7 @@ class ProductDetailScreen extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF1E293B),
+                        color: const Color(0xFFFFFFFF),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: NutriScoreWidget(scoreLetter: product.nutriscore),
@@ -283,24 +289,24 @@ class ProductDetailScreen extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1E293B),
+                  color: const Color(0xFFFFFFFF),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
                   children: [
                     Icon(
                       isNonVeg ? Icons.restaurant : (isVeg ? Icons.eco : Icons.help_outline),
-                      color: isNonVeg ? Colors.orangeAccent : (isVeg ? Colors.greenAccent : Colors.white54),
+                      color: isNonVeg ? Color(0xFFE64A19) : (isVeg ? Color(0xFF2E7D32) : Color(0xFF4A5A50)),
                     ),
                     const SizedBox(width: 12),
                     const Text(
                       'Dietary Suitability: ',
-                      style: TextStyle(color: Colors.white70, fontSize: 14),
+                      style: TextStyle(color: Color(0xFF3D4A42), fontSize: 14),
                     ),
                     Text(
                       vegStatus,
                       style: TextStyle(
-                        color: isNonVeg ? Colors.orangeAccent : (isVeg ? Colors.greenAccent : Colors.white54),
+                        color: isNonVeg ? Color(0xFFE64A19) : (isVeg ? Color(0xFF2E7D32) : Color(0xFF4A5A50)),
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                       ),
@@ -318,7 +324,7 @@ class ProductDetailScreen extends StatelessWidget {
                 padding: EdgeInsets.symmetric(horizontal: 20),
                 child: Text(
                   '⚠️ Health Alerts',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF17221C)),
                 ),
               ),
               const SizedBox(height: 10),
@@ -331,8 +337,8 @@ class ProductDetailScreen extends StatelessWidget {
                     children: product.allergens.map((allergen) {
                       return Chip(
                         label: Text(allergen),
-                        backgroundColor: Colors.redAccent.withOpacity(0.25),
-                        labelStyle: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 12),
+                        backgroundColor: Color(0xFFD32F2F).withOpacity(0.25),
+                        labelStyle: const TextStyle(color: Color(0xFFD32F2F), fontWeight: FontWeight.bold, fontSize: 12),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       );
                     }).toList(),
@@ -343,12 +349,12 @@ class ProductDetailScreen extends StatelessWidget {
                 final conditions = (warning['conditions'] as List?)?.join(', ') ?? 'Contains allergen';
                 return Card(
                   margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-                  color: const Color(0xFF2D1E24), // Mild reddish-dark card
+                  color: const Color(0xFFFDECEC), // Mild reddish-dark card
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   child: ListTile(
-                    leading: const Icon(Icons.warning_amber_rounded, color: Colors.redAccent),
-                    title: Text(ing, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                    subtitle: Text(conditions, style: const TextStyle(color: Colors.white70)),
+                    leading: const Icon(Icons.warning_amber_rounded, color: Color(0xFFD32F2F)),
+                    title: Text(ing, style: const TextStyle(color: Color(0xFF17221C), fontWeight: FontWeight.bold)),
+                    subtitle: Text(conditions, style: const TextStyle(color: Color(0xFF3D4A42))),
                   ),
                 );
               }),
@@ -360,7 +366,7 @@ class ProductDetailScreen extends StatelessWidget {
               padding: EdgeInsets.symmetric(horizontal: 20),
               child: Text(
                 '📝 Ingredients',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF17221C)),
               ),
             ),
             const SizedBox(height: 10),
@@ -370,14 +376,14 @@ class ProductDetailScreen extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1E293B),
+                  color: const Color(0xFFFFFFFF),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
                   product.ingredients.isEmpty
                       ? 'No ingredients list available. Check the pack.'
                       : product.ingredients.join(', '),
-                  style: const TextStyle(color: Colors.white70, fontSize: 14, height: 1.5),
+                  style: const TextStyle(color: Color(0xFF3D4A42), fontSize: 14, height: 1.5),
                 ),
               ),
             ),
@@ -388,12 +394,12 @@ class ProductDetailScreen extends StatelessWidget {
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20),
                 child: Text('Barcode details',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF17221C))),
               ),
               const SizedBox(height: 10),
               ...product.codeFacts.map((f) => Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
-                    child: Text('${f[0]}: ${f[1]}', style: const TextStyle(color: Colors.white70, fontSize: 14)),
+                    child: Text('${f[0]}: ${f[1]}', style: const TextStyle(color: Color(0xFF3D4A42), fontSize: 14)),
                   )),
               const SizedBox(height: 24),
             ],
@@ -404,7 +410,7 @@ class ProductDetailScreen extends StatelessWidget {
                 padding: EdgeInsets.symmetric(horizontal: 20),
                 child: Text(
                   '🤖 AI Expert Summary',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF17221C)),
                 ),
               ),
               const SizedBox(height: 10),
@@ -414,13 +420,13 @@ class ProductDetailScreen extends StatelessWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1E293B),
+                    color: const Color(0xFFFFFFFF),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFF0284C7).withOpacity(0.3)), // subtle neon border
+                    border: Border.all(color: const Color(0xFF1F6B45).withOpacity(0.3)), // subtle neon border
                   ),
                   child: Text(
                     product.expertSummary!,
-                    style: const TextStyle(color: Colors.white70, fontSize: 14, height: 1.5),
+                    style: const TextStyle(color: Color(0xFF3D4A42), fontSize: 14, height: 1.5),
                   ),
                 ),
               ),

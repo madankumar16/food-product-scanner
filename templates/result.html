@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Barcode result — {{ site.name }}{% endblock %}
+{% block description %}The result of your latest scan: product details, warnings and barcode information. Saved only on this device.{% endblock %}
+
+{% block content %}
+<section class="panel" aria-labelledby="result-title" id="result-panel" tabindex="-1">
+    <h1 id="result-title" class="h3">Barcode result</h1>
+    <div id="result">
+        <p class="muted">No scan yet. <a href="{{ url_for('index') }}">Scan something</a> and the result shows here.</p>
+    </div>
+    <p class="status-msg" id="status" role="status" aria-live="polite"></p>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/result.js') }}" defer></script>
+{% endblock %}

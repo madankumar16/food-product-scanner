@@ -121,7 +121,9 @@ window.FPS = (function () {
         return notes.length ? el('div', {}, notes.map(function (n) { return el('p', { class: 'muted', text: n }); })) : null;
     }
 
-    function actionButtons(data, opts, withPdf) {
+    var current = null; // the result on screen; the top PDF button uses it
+
+    function actionButtons(data, opts) {
         var actions = el('div', { class: 'controls' });
         var saveBtn = el('button', { class: 'btn', type: 'button', text: store.isSaved(data) ? 'Remove from saved' : 'Save' });
         saveBtn.addEventListener('click', function () {
@@ -131,11 +133,6 @@ window.FPS = (function () {
             if (opts.status) opts.status(nowSaved ? 'Saved in this browser.' : 'Removed from saved.', 'ok');
         });
         actions.appendChild(saveBtn);
-        if (withPdf) {
-            var pdfBtn = el('button', { class: 'btn', type: 'button', text: 'Download PDF' });
-            pdfBtn.addEventListener('click', function () { downloadPdf(data, pdfBtn, opts.status); });
-            actions.appendChild(pdfBtn);
-        }
         return actions;
     }
 
@@ -180,12 +177,14 @@ window.FPS = (function () {
         if (notes) container.appendChild(notes);
         var details = codeDetails(data);
         if (details) container.appendChild(details);
-        container.appendChild(actionButtons(data, opts, false));
+        container.appendChild(actionButtons(data, opts));
     }
 
     function render(container, data, opts) {
         opts = opts || {};
         container.textContent = '';
+        current = data;
+        document.dispatchEvent(new CustomEvent('fps:result'));
         if (data && data.kind && data.kind !== 'food') { renderGeneric(container, data, opts); return; }
         var d = (data && data.dashboard) || {};
         var off = (data && data.open_food_facts) || {};
@@ -236,7 +235,7 @@ window.FPS = (function () {
 
         var details = codeDetails(data);
         if (details) container.appendChild(details);
-        container.appendChild(actionButtons(data, opts, true));
+        container.appendChild(actionButtons(data, opts));
     }
 
     async function downloadPdf(data, btn, status) {
@@ -246,7 +245,7 @@ window.FPS = (function () {
             if (!res.ok) throw new Error('bad status');
             var blob = await res.blob();
             var url = URL.createObjectURL(blob);
-            var name = (str((data.dashboard || {})['Product Name'], 'product').replace(/[^A-Za-z0-9]+/g, '_').slice(0, 60) || 'product') + '_report.pdf';
+            var name = (titleOf(data).replace(/[^A-Za-z0-9]+/g, '_').slice(0, 60) || 'scan') + '_report.pdf';
             var a = el('a', { href: url, download: name });
             document.body.appendChild(a); a.click(); a.remove();
             setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
@@ -265,5 +264,6 @@ window.FPS = (function () {
     }
 
     return { el: el, render: render, store: store, safeImage: safeImage, statusFn: statusFn, str: str,
-             titleOf: titleOf, kindLabel: function (k) { return KIND_LABELS[k] || ''; } };
+             titleOf: titleOf, kindLabel: function (k) { return KIND_LABELS[k] || ''; }, downloadPdf: downloadPdf,
+             current: function () { var r = store.recent()[0]; return current || (r && r.data) || null; } };
 })();

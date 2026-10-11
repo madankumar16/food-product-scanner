@@ -12,21 +12,21 @@ class HistoryScreen extends StatelessWidget {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
-        backgroundColor: const Color(0xFF0F172A), // Dark slate
+        backgroundColor: const Color(0xFFF2F4EE), // Dark slate
         appBar: AppBar(
-          backgroundColor: const Color(0xFF1E293B),
+          backgroundColor: const Color(0xFFFFFFFF),
           elevation: 0,
           title: const Text(
             'Scans & Favorites',
             style: TextStyle(
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: Color(0xFF17221C),
             ),
           ),
           bottom: const TabBar(
-            labelColor: Color(0xFF38BDF8), // Light blue neon
-            unselectedLabelColor: Colors.white60,
-            indicatorColor: Color(0xFF38BDF8),
+            labelColor: Color(0xFF1F6B45), // Light blue neon
+            unselectedLabelColor: Color(0xFF4A5A50),
+            indicatorColor: Color(0xFF1F6B45),
             tabs: [
               Tab(icon: Icon(Icons.history), text: 'History'),
               Tab(icon: Icon(Icons.favorite), text: 'Favorites'),
@@ -52,7 +52,7 @@ class HistoryTab extends StatelessWidget {
     final provider = Provider.of<ProductProvider>(context);
 
     if (provider.isLoading) {
-      return const Center(child: CircularProgressIndicator(color: Color(0xFF38BDF8)));
+      return const Center(child: CircularProgressIndicator(color: Color(0xFF1F6B45)));
     }
 
     if (provider.history.isEmpty) {
@@ -71,12 +71,12 @@ class HistoryTab extends StatelessWidget {
             children: [
               Text(
                 '${provider.history.length} scans',
-                style: const TextStyle(color: Colors.white60, fontSize: 13),
+                style: const TextStyle(color: Color(0xFF4A5A50), fontSize: 13),
               ),
               TextButton.icon(
                 onPressed: () => _confirmClear(context, provider, true),
-                icon: const Icon(Icons.delete_sweep, color: Colors.redAccent, size: 18),
-                label: const Text('Clear All', style: TextStyle(color: Colors.redAccent)),
+                icon: const Icon(Icons.delete_sweep, color: Color(0xFFD32F2F), size: 18),
+                label: const Text('Clear All', style: TextStyle(color: Color(0xFFD32F2F))),
               ),
             ],
           ),
@@ -93,7 +93,7 @@ class HistoryTab extends StatelessWidget {
                 background: Container(
                   alignment: Alignment.centerRight,
                   padding: const EdgeInsets.only(right: 20),
-                  color: Colors.redAccent,
+                  color: Color(0xFFD32F2F),
                   child: const Icon(Icons.delete, color: Colors.white),
                 ),
                 onDismissed: (direction) {
@@ -120,7 +120,7 @@ class FavoritesTab extends StatelessWidget {
     final provider = Provider.of<ProductProvider>(context);
 
     if (provider.isLoading) {
-      return const Center(child: CircularProgressIndicator(color: Color(0xFF38BDF8)));
+      return const Center(child: CircularProgressIndicator(color: Color(0xFF1F6B45)));
     }
 
     if (provider.favorites.isEmpty) {
@@ -139,12 +139,12 @@ class FavoritesTab extends StatelessWidget {
             children: [
               Text(
                 '${provider.favorites.length} saved',
-                style: const TextStyle(color: Colors.white60, fontSize: 13),
+                style: const TextStyle(color: Color(0xFF4A5A50), fontSize: 13),
               ),
               TextButton.icon(
                 onPressed: () => _confirmClear(context, provider, false),
-                icon: const Icon(Icons.favorite_border, color: Colors.redAccent, size: 18),
-                label: const Text('Remove All', style: TextStyle(color: Colors.redAccent)),
+                icon: const Icon(Icons.favorite_border, color: Color(0xFFD32F2F), size: 18),
+                label: const Text('Remove All', style: TextStyle(color: Color(0xFFD32F2F))),
               ),
             ],
           ),
@@ -161,7 +161,7 @@ class FavoritesTab extends StatelessWidget {
                 background: Container(
                   alignment: Alignment.centerRight,
                   padding: const EdgeInsets.only(right: 20),
-                  color: Colors.redAccent,
+                  color: Color(0xFFD32F2F),
                   child: const Icon(Icons.heart_broken, color: Colors.white),
                 ),
                 onDismissed: (direction) {
@@ -190,13 +190,13 @@ class ProductListTile extends StatelessWidget {
     Color safetyColor;
     switch ((product.safetyColor ?? '').toUpperCase()) {
       case 'GREEN':
-        safetyColor = Colors.greenAccent.shade400;
+        safetyColor = Color(0xFF2E7D32);
         break;
       case 'YELLOW':
-        safetyColor = Colors.yellowAccent.shade400;
+        safetyColor = Color(0xFFFF6F00);
         break;
       case 'RED':
-        safetyColor = Colors.redAccent;
+        safetyColor = Color(0xFFD32F2F);
         break;
       default:
         safetyColor = Colors.grey;
@@ -204,7 +204,7 @@ class ProductListTile extends StatelessWidget {
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      color: const Color(0xFF1E293B),
+      color: const Color(0xFFFFFFFF),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ListTile(
         contentPadding: const EdgeInsets.all(12),
@@ -217,13 +217,13 @@ class ProductListTile extends StatelessWidget {
                   height: 50,
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) =>
-                      Icon(_iconFor(product), color: Colors.white54, size: 30),
+                      Icon(_iconFor(product), color: Color(0xFF4A5A50), size: 30),
                 )
-              : Icon(_iconFor(product), color: Colors.white54, size: 30),
+              : Icon(_iconFor(product), color: Color(0xFF4A5A50), size: 30),
         ),
         title: Text(
           product.name,
-          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+          style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF17221C)),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
@@ -231,7 +231,7 @@ class ProductListTile extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 4),
-            Text(product.brand ?? product.kindLabel, style: const TextStyle(color: Colors.white60, fontSize: 13)),
+            Text(product.brand ?? product.kindLabel, style: const TextStyle(color: Color(0xFF4A5A50), fontSize: 13)),
             const SizedBox(height: 6),
             if (product.isFood) Row(
               children: [
@@ -250,12 +250,12 @@ class ProductListTile extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
-                      color: Colors.white10,
+                      color: Color(0xFFE8F2EC),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
                       'Nutri-Score: ${product.nutriscore}',
-                      style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold),
+                      style: const TextStyle(color: Color(0xFF3D4A42), fontSize: 11, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ]
@@ -263,7 +263,7 @@ class ProductListTile extends StatelessWidget {
             )
           ],
         ),
-        trailing: const Icon(Icons.chevron_right, color: Colors.white30),
+        trailing: const Icon(Icons.chevron_right, color: Color(0xFF8A968E)),
         onTap: () {
           Navigator.push(
             context,
@@ -293,12 +293,12 @@ class EmptyStatePlaceholder extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, size: 64, color: Colors.white24),
+          Icon(icon, size: 64, color: Color(0xFFB5BFB8)),
           const SizedBox(height: 16),
           Text(
             message,
             textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.white30, fontSize: 15, height: 1.4),
+            style: const TextStyle(color: Color(0xFF8A968E), fontSize: 15, height: 1.4),
           ),
         ],
       ),
@@ -323,21 +323,21 @@ void _confirmClear(BuildContext context, ProductProvider provider, bool isHistor
   showDialog(
     context: context,
     builder: (context) => AlertDialog(
-      backgroundColor: const Color(0xFF1E293B),
+      backgroundColor: const Color(0xFFFFFFFF),
       title: Text(
         isHistory ? 'Clear Scan History?' : 'Clear Favorites?',
-        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        style: const TextStyle(color: Color(0xFF17221C), fontWeight: FontWeight.bold),
       ),
       content: Text(
         isHistory
             ? 'Delete all scans from this phone?'
             : 'Remove everything you saved?',
-        style: const TextStyle(color: Colors.white70),
+        style: const TextStyle(color: Color(0xFF3D4A42)),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel', style: TextStyle(color: Colors.white60)),
+          child: const Text('Cancel', style: TextStyle(color: Color(0xFF4A5A50))),
         ),
         TextButton(
           onPressed: () {
@@ -348,7 +348,7 @@ void _confirmClear(BuildContext context, ProductProvider provider, bool isHistor
             }
             Navigator.pop(context);
           },
-          child: const Text('Clear All', style: TextStyle(color: Colors.redAccent)),
+          child: const Text('Clear All', style: TextStyle(color: Color(0xFFD32F2F))),
         ),
       ],
     ),

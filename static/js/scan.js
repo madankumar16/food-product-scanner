@@ -1,33 +1,14 @@
-// Scan page: camera (in-browser reading of any barcode or QR code), photo upload, typed code.
+// Scanning: live camera on Home, typed codes on Number, photos on Photo.
+// Each part only runs if its elements are on the page.
+// A successful scan is saved in this browser and shown on the Result page.
 (function () {
     'use strict';
     var status = FPS.statusFn(document.getElementById('status'));
-    var resultBox = document.getElementById('result');
-    var resultPanel = document.getElementById('result-panel');
     var busy = false;
-
-    // ---------- tabs (arrow keys move between them) ----------
-    var tabs = Array.prototype.slice.call(document.querySelectorAll('[role="tab"]'));
-    function select(tab) {
-        tabs.forEach(function (t) {
-            var on = t === tab;
-            t.setAttribute('aria-selected', on ? 'true' : 'false');
-            t.tabIndex = on ? 0 : -1;
-            document.getElementById(t.getAttribute('aria-controls')).classList.toggle('is-hidden', !on);
-        });
-        if (tab.id !== 'tab-camera') stopCamera();
-    }
-    tabs.forEach(function (tab, i) {
-        tab.addEventListener('click', function () { select(tab); });
-        tab.addEventListener('keydown', function (e) {
-            var next = e.key === 'ArrowRight' ? tabs[(i + 1) % tabs.length] : e.key === 'ArrowLeft' ? tabs[(i - 1 + tabs.length) % tabs.length] : null;
-            if (next) { e.preventDefault(); select(next); next.focus(); }
-        });
-    });
 
     // ---------- talking to the server ----------
     async function send(body, isForm) {
-        if (busy) return;
+        if (busy) return false;
         busy = true;
         status('Checking…');
         try {
@@ -37,85 +18,99 @@
             try { data = await res.json(); } catch (e) { /* not JSON */ }
             if (res.ok && data.success) {
                 FPS.store.addRecent(data);
-                FPS.render(resultBox, data, { status: status });
-                status('Found it.', 'ok');
-                resultPanel.focus({ preventScroll: false });
-            } else {
-                status(FPS.str(data.error, 'Something went wrong. Please try again.'), 'err');
+                status('Found it. Opening the result…', 'ok');
+                window.location.href = '/result';
+                return true;
             }
+            status(FPS.str(data.error, 'Something went wrong. Please try again.'), 'err');
         } catch (e) {
             status('Could not reach the server. Check your connection and try again.', 'err');
         }
         busy = false;
+        return false;
     }
 
-    // ---------- typed barcode ----------
-    var form = document.getElementById('barcode-form');
-    var input = document.getElementById('barcode-input');
-    form.addEventListener('submit', function (e) {
-        e.preventDefault();
-        var code = input.value.trim();
-        if (!code) {
-            status('Type the numbers under the barcode, or the text of the code.', 'err');
-            input.setAttribute('aria-invalid', 'true');
-            input.focus();
-            return;
-        }
-        input.removeAttribute('aria-invalid');
-        send({ code: code, format: 'typed' });
-    });
-
-    // ---------- photo ----------
-    var photoInput = document.getElementById('photo-input');
-    var preview = document.getElementById('photo-preview');
-    var photoBtn = document.getElementById('photo-btn');
-    var drop = document.getElementById('drop');
-    var chosen = null;
-
-    function choose(file) {
-        if (!file) return;
-        if (!/^image\/(jpeg|png|webp)$/.test(file.type)) { status('Please choose a JPEG, PNG or WebP photo.', 'err'); return; }
-        chosen = file;
-        if (preview.src) URL.revokeObjectURL(preview.src);
-        preview.src = URL.createObjectURL(file);
-        preview.classList.remove('is-hidden');
-        photoBtn.disabled = false;
-        status('Photo ready.');
-    }
-    photoInput.addEventListener('change', function () { choose(photoInput.files[0]); });
-    ['dragenter', 'dragover'].forEach(function (ev) { drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.add('dragging'); }); });
-    ['dragleave', 'drop'].forEach(function (ev) { drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.remove('dragging'); }); });
-    drop.addEventListener('drop', function (e) { choose(e.dataTransfer.files[0]); });
-
-    // Shrink big phone photos before upload: faster, cheaper, under the 4 MB limit.
-    function shrink(file) {
+    // Shrink big phone photos before upload: faster, and under the 4 MB limit.
+    function shrink(source) {
         return new Promise(function (resolve) {
+            var url = URL.createObjectURL(source);
             var img = new Image();
             img.onload = function () {
                 var scale = Math.min(1, 2000 / Math.max(img.width, img.height));
                 var c = document.createElement('canvas');
                 c.width = Math.round(img.width * scale); c.height = Math.round(img.height * scale);
                 c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
-                c.toBlob(function (b) { resolve(b || file); }, 'image/jpeg', 0.88);
+                URL.revokeObjectURL(url);
+                c.toBlob(function (b) { resolve(b || source); }, 'image/jpeg', 0.9);
             };
-            img.onerror = function () { resolve(file); };
-            img.src = preview.src;
+            img.onerror = function () { URL.revokeObjectURL(url); resolve(source); };
+            img.src = url;
         });
     }
-    photoBtn.addEventListener('click', async function () {
-        if (!chosen) return;
-        photoBtn.disabled = true;
+    function okType(file) { return file && /^image\/(jpeg|png|webp)$/.test(file.type); }
+    async function sendPhoto(file) {
         var fd = new FormData();
-        fd.append('image', await shrink(chosen), 'photo.jpg');
-        await send(fd, true);
-        photoBtn.disabled = false;
-    });
+        fd.append('image', await shrink(file), 'photo.jpg');
+        return send(fd, true);
+    }
 
-    // ---------- live camera (decoding happens in the browser) ----------
+    // ---------- typed code (Number page) ----------
+    var form = document.getElementById('barcode-form');
+    if (form) {
+        var input = document.getElementById('barcode-input');
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            var code = input.value.trim();
+            if (!code) {
+                status('Type the numbers under the barcode, or the text of the code.', 'err');
+                input.setAttribute('aria-invalid', 'true');
+                input.focus();
+                return;
+            }
+            input.removeAttribute('aria-invalid');
+            send({ code: code, format: 'typed' });
+        });
+    }
+
+    // ---------- photo: camera or gallery (Photo page) ----------
+    var photoInput = document.getElementById('photo-input');
+    var cameraInput = document.getElementById('camera-input');
+    if (photoInput) {
+        var preview = document.getElementById('photo-preview');
+        var photoBtn = document.getElementById('photo-btn');
+        var drop = document.getElementById('drop');
+        var chosen = null;
+        var choose = function (file) {
+            if (!file) return;
+            if (!okType(file)) { status('Please choose a JPEG, PNG or WebP photo.', 'err'); return; }
+            chosen = file;
+            if (preview.src) URL.revokeObjectURL(preview.src);
+            preview.src = URL.createObjectURL(file);
+            preview.classList.remove('is-hidden');
+            photoBtn.disabled = false;
+            status('Photo ready.');
+        };
+        photoInput.addEventListener('change', function () { choose(photoInput.files[0]); });
+        if (cameraInput) cameraInput.addEventListener('change', function () { choose(cameraInput.files[0]); });
+        ['dragenter', 'dragover'].forEach(function (ev) { drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.add('dragging'); }); });
+        ['dragleave', 'drop'].forEach(function (ev) { drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.remove('dragging'); }); });
+        drop.addEventListener('drop', function (e) { choose(e.dataTransfer.files[0]); });
+        photoBtn.addEventListener('click', async function () {
+            if (!chosen) return;
+            photoBtn.disabled = true;
+            if (!(await sendPhoto(chosen))) photoBtn.disabled = false;
+        });
+    }
+
+    // ---------- live camera (Home) ----------
     var cameraBtn = document.getElementById('camera-btn');
+    if (!cameraBtn) return;
     var cameraLabel = document.getElementById('camera-label');
-    var placeholder = document.getElementById('camera-placeholder');
-    var scanner = null, running = false, lastCode = null;
+    var cameraBox = document.getElementById('camera-box');
+    var livePill = document.getElementById('live-pill');
+    var hint = document.getElementById('camera-hint');
+    var torchBtn = document.getElementById('torch-btn');
+    var scanner = null, running = false, lastCode = null, torchOn = false;
     var candidate = null, candidateHits = 0;
 
     // Every symbology people meet in daily life. Left out on purpose: UPC/EAN
@@ -141,8 +136,17 @@
         return (10 - sum % 10) % 10 === +digits[digits.length - 1];
     }
 
+    function setLive(on) {
+        running = on;
+        cameraBox.classList.toggle('live', on);
+        livePill.classList.toggle('is-hidden', !on);
+        cameraLabel.textContent = on ? 'Stop' : 'Scan';
+        hint.textContent = on ? 'Hold steady — scanning automatically' : 'Press Scan to turn on the camera';
+        if (!on) { torchBtn.classList.add('is-hidden'); torchOn = false; torchBtn.setAttribute('aria-pressed', 'false'); }
+    }
+
     async function startCamera() {
-        if (typeof Html5Qrcode === 'undefined') { status('The scanner could not load. Use "Type it" instead.', 'err'); return; }
+        if (typeof Html5Qrcode === 'undefined') { status('The scanner could not load. Use Photo or Number instead.', 'err'); return; }
         if (!window.isSecureContext) { status('The camera only works over https.', 'err'); return; }
         cameraBtn.disabled = true;
         status('Asking for camera permission…');
@@ -153,26 +157,36 @@
         });
         candidate = null;
         try {
-            await scanner.start({ facingMode: 'environment' }, {
-                fps: 10,
-                qrbox: function (w, h) { var s = Math.floor(Math.min(w, h) * 0.8); return { width: Math.min(w - 20, Math.floor(s * 1.25)), height: s }; }
-            }, onCode, function () {});
-            running = true;
-            placeholder.classList.add('is-hidden');
-            cameraLabel.textContent = 'Stop camera';
-            status('Point the camera at any barcode or QR code.');
+            // No scan box: the whole picture is searched; the frame on screen is a guide.
+            await scanner.start({ facingMode: 'environment' }, { fps: 10 }, onCode, function () {});
+            setLive(true);
+            status('');
+            // Show the flash button only if this camera has a torch.
+            try {
+                var caps = scanner.getRunningTrackCapabilities();
+                if (caps && caps.torch) torchBtn.classList.remove('is-hidden');
+            } catch (e) { /* not supported */ }
         } catch (e) {
-            status('Camera access was blocked or no camera was found. Try "Photo" or "Type it".', 'err');
+            status('Camera access was blocked or no camera was found. Use Photo or Number instead.', 'err');
         }
         cameraBtn.disabled = false;
     }
     async function stopCamera() {
         if (!scanner || !running) return;
+        setLive(false);
         try { await scanner.stop(); } catch (e) { /* already stopped */ }
-        running = false;
-        placeholder.classList.remove('is-hidden');
-        cameraLabel.textContent = 'Start camera';
     }
+    torchBtn.addEventListener('click', async function () {
+        if (!running) return;
+        try {
+            await scanner.applyVideoConstraints({ advanced: [{ torch: !torchOn }] });
+            torchOn = !torchOn;
+            torchBtn.setAttribute('aria-pressed', torchOn ? 'true' : 'false');
+        } catch (e) {
+            status('This camera has no flash.', 'err');
+            torchBtn.classList.add('is-hidden');
+        }
+    });
     function onCode(text, result) {
         var code = String(text || '');
         if (!code.trim() || code === lastCode || busy || !running) return;
