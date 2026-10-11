@@ -181,3 +181,7 @@ table.nutrition td { text-align: right; font-weight: 600; }
 .cookie-notice p { margin-bottom: var(--s2); }
 
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
+
+/* Warnings (expired, payment, unsafe link) and long values in fact lists */
+.alert-box { background: var(--err-bg); color: var(--err); border: 1px solid currentColor; border-radius: var(--radius); padding: var(--s2); font-weight: 600; }
+.facts.kv dd { overflow-wrap: anywhere; }

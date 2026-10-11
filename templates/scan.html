@@ -1,16 +1,16 @@
 {% extends "base.html" %}
-{% block title %}{{ site.name }} — Check ingredients, allergens and veg status{% endblock %}
-{% block description %}Scan or type a food barcode to see ingredients, possible allergens, vegetarian status and Nutri-Score. Free, no sign-up.{% endblock %}
+{% block title %}{{ site.name }} — Check any barcode or QR code{% endblock %}
+{% block description %}Scan any barcode or QR code before you use it: food, cosmetics, pet food, household products, books, medicine expiry dates, links and UPI payments. Free, no sign-up.{% endblock %}
 
 {% block content %}
 <div class="wrap page-head">
-    <h1>Know what's in your food.</h1>
-    <p class="lead">Scan a barcode to see ingredients, allergens, veg status and Nutri-Score.</p>
+    <h1>Scan before use.</h1>
+    <p class="lead">Check any barcode or QR code: food, cosmetics, pet food, household products, books, expiry dates, links and payments.</p>
 </div>
 
 <div class="wrap grid-2">
     <section class="panel" aria-labelledby="scan-title">
-        <h2 id="scan-title" class="h3">Scan a product</h2>
+        <h2 id="scan-title" class="h3">Scan a code</h2>
         <div class="tabs" role="tablist" aria-label="How to scan">
             <button class="tab" role="tab" id="tab-camera" aria-controls="pane-camera" aria-selected="true">Camera</button>
             <button class="tab" role="tab" id="tab-photo" aria-controls="pane-photo" aria-selected="false" tabindex="-1">Photo</button>
@@ -19,7 +19,7 @@
 
         <div role="tabpanel" id="pane-camera" aria-labelledby="tab-camera">
             <div class="camera-box">
-                <p id="camera-placeholder">Your camera is off. Press the button, then point it at a barcode.</p>
+                <p id="camera-placeholder">Your camera is off. Press the button, then point it at any barcode or QR code.</p>
                 <div id="reader"></div>
             </div>
             <div class="controls">
@@ -32,7 +32,7 @@
         <div role="tabpanel" id="pane-photo" aria-labelledby="tab-photo" class="is-hidden">
             <label class="drop" id="drop">
                 <svg class="icon" aria-hidden="true"><use href="#i-upload"/></svg>
-                <span>Choose or drop a photo of the barcode{% if ai_enabled %} or ingredients label{% endif %}</span>
+                <span>Choose or drop a photo of the barcode or QR code{% if ai_enabled %} or ingredients label{% endif %}</span>
                 <input type="file" id="photo-input" accept="image/jpeg,image/png,image/webp">
             </label>
             <img id="photo-preview" class="preview is-hidden" alt="Selected photo">
@@ -44,12 +44,12 @@
         <div role="tabpanel" id="pane-type" aria-labelledby="tab-type" class="is-hidden">
             <form id="barcode-form" novalidate>
                 <div class="field">
-                    <label for="barcode-input">Barcode number</label>
-                    <input id="barcode-input" name="barcode" inputmode="numeric" autocomplete="off" pattern="[0-9]{8,14}" maxlength="14"
+                    <label for="barcode-input">Barcode number or code text</label>
+                    <input id="barcode-input" name="barcode" autocomplete="off" spellcheck="false" maxlength="4096"
                            aria-describedby="barcode-hint" required>
-                    <span class="hint" id="barcode-hint">The 8–14 digits under the barcode.</span>
+                    <span class="hint" id="barcode-hint">The digits under a barcode, an ISBN, or any text or link.</span>
                 </div>
-                <button class="btn" type="submit">Look up product</button>
+                <button class="btn" type="submit">Check it</button>
             </form>
         </div>
 
@@ -59,14 +59,14 @@
     <section class="panel" aria-labelledby="result-title" id="result-panel" tabindex="-1">
         <h2 id="result-title" class="h3">Result</h2>
         <div id="result">
-            <p class="muted">Scan a product to see its details here.</p>
+            <p class="muted">Scan a code to see what it is.</p>
         </div>
     </section>
 </div>
 
 <section class="section">
     <div class="wrap">
-        <p class="note">Results come from <a href="https://world.openfoodfacts.org" rel="noopener">Open Food Facts</a>{% if ai_enabled %} or from reading the label photo{% endif %}. Automatic checks can miss things. Always read the pack if you have an allergy.</p>
+        <p class="note">Product details come from <a href="https://world.openfoodfacts.org" rel="noopener">Open Food Facts</a>, <a href="https://world.openbeautyfacts.org" rel="noopener">Open Beauty Facts</a>, <a href="https://world.openpetfoodfacts.org" rel="noopener">Open Pet Food Facts</a>, <a href="https://world.openproductsfacts.org" rel="noopener">Open Products Facts</a> and <a href="https://openlibrary.org" rel="noopener">Open Library</a>. Everything else is read from the code itself{% if ai_enabled %} or from reading the label photo{% endif %}. Automatic checks can miss things. Always read the pack if you have an allergy.</p>
     </div>
 </section>
 {% endblock %}

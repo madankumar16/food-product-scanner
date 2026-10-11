@@ -1,5 +1,5 @@
 name: food_scanner_mobile
-description: A Flutter mobile application for scanning food products and displaying health analyses.
+description: Scan Before Use - scan any barcode or QR code and see what it is.
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -10,10 +10,10 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.6
-  http: ^1.1.0
-  shared_preferences: ^2.2.0
-  mobile_scanner: ^3.5.0
-  provider: ^6.1.1
+  http: ^1.2.2
+  shared_preferences: ^2.3.2
+  mobile_scanner: ^5.2.3
+  provider: ^6.1.2
 
 dev_dependencies:
   flutter_test:

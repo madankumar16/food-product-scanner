@@ -16,11 +16,21 @@ window.FPS = (function () {
     }
 
     function safeImage(url) {
-        return typeof url === 'string' && /^https:\/\/images\.openfoodfacts\.(org|net)\//.test(url) ? url : null;
+        return typeof url === 'string' &&
+            /^https:\/\/(images\.open(food|beauty|petfood|products)facts\.(org|net)|covers\.openlibrary\.org)\//.test(url) ? url : null;
     }
 
     function str(v, fallback) { return (typeof v === 'string' && v.trim()) ? v : (fallback || ''); }
     function list(v) { return Array.isArray(v) ? v.filter(function (x) { return typeof x === 'string'; }) : []; }
+    // [[label, value], ...] from the server; anything else is dropped.
+    function pairs(v) {
+        return Array.isArray(v) ? v.filter(function (p) { return Array.isArray(p) && typeof p[0] === 'string' && typeof p[1] === 'string' && p[1]; }) : [];
+    }
+    function titleOf(data) {
+        var d = (data && data.dashboard) || {};
+        return str(data && data.title, str(d['Product Name'], 'Scanned code'));
+    }
+    var KIND_LABELS = { food: 'Food', product: 'Product', book: 'Book', code: 'Code' };
 
     // ---------- storage (this browser only) ----------
     var RECENT = 'fps-recent', SAVED = 'fps-saved', MAX = 50;
@@ -35,7 +45,8 @@ window.FPS = (function () {
     function idOf(data) {
         var off = data && data.open_food_facts || {};
         var d = data && data.dashboard || {};
-        return off.barcode || ('name:' + str(d['Product Name']) + '|' + str(d['Brand']));
+        var code = data && data.code || {};
+        return str(code.text) || off.barcode || ('name:' + str(d['Product Name']) + '|' + str(d['Brand']));
     }
     var store = {
         recent: function () { return read(RECENT); },
@@ -91,11 +102,93 @@ window.FPS = (function () {
         return el('table', { class: 'nutrition' }, [el('caption', { class: 'visually-hidden', text: 'Nutrition per 100 g' }), body]);
     }
 
+    function factList(items) {
+        return el('dl', { class: 'facts kv' }, pairs(items).map(function (p) { return fact(p[0], document.createTextNode(p[1])); }));
+    }
+
+    function warningBox(text) {
+        return text ? el('p', { class: 'alert-box', role: 'alert', text: text }) : null;
+    }
+
+    function codeDetails(data) {
+        var facts = pairs(data && data.code && data.code.facts);
+        if (!facts.length) return null;
+        return el('div', {}, [el('h3', { text: 'Barcode details' }), factList(facts)]);
+    }
+
+    function notesList(data) {
+        var notes = list(data && data.notes);
+        return notes.length ? el('div', {}, notes.map(function (n) { return el('p', { class: 'muted', text: n }); })) : null;
+    }
+
+    function actionButtons(data, opts, withPdf) {
+        var actions = el('div', { class: 'controls' });
+        var saveBtn = el('button', { class: 'btn', type: 'button', text: store.isSaved(data) ? 'Remove from saved' : 'Save' });
+        saveBtn.addEventListener('click', function () {
+            var nowSaved = store.toggleSaved(data);
+            saveBtn.textContent = nowSaved ? 'Remove from saved' : 'Save';
+            if (opts.onChange) opts.onChange();
+            if (opts.status) opts.status(nowSaved ? 'Saved in this browser.' : 'Removed from saved.', 'ok');
+        });
+        actions.appendChild(saveBtn);
+        if (withPdf) {
+            var pdfBtn = el('button', { class: 'btn', type: 'button', text: 'Download PDF' });
+            pdfBtn.addEventListener('click', function () { downloadPdf(data, pdfBtn, opts.status); });
+            actions.appendChild(pdfBtn);
+        }
+        return actions;
+    }
+
+    // Anything that isn't a food product: other products, books, links, payments, Wi-Fi, text...
+    function renderGeneric(container, data, opts) {
+        var item = data.item || null;
+        var content = data.content || null;
+        var img = item && safeImage(item.image_url);
+        var title = item ? str(item.title, titleOf(data)) : str(content && content.title, titleOf(data));
+        var sub = item ? str(item.subtitle) : '';
+        container.appendChild(el('div', { class: 'result-head' }, [
+            img ? el('img', { src: img, alt: title, width: '112', height: '112', loading: 'lazy', referrerpolicy: 'no-referrer' })
+                : el('div', { class: 'no-photo', text: KIND_LABELS[data.kind] || 'Code' }),
+            el('div', {}, [el('h2', { text: title }), sub ? el('p', { text: sub }) : null])
+        ]));
+        var warn = warningBox(str(data.warning));
+        if (warn) container.appendChild(warn);
+
+        if (item) {
+            if (pairs(item.facts).length) container.appendChild(factList(item.facts));
+            pairs(item.sections).forEach(function (s) {
+                container.appendChild(el('h3', { text: s[0] }));
+                container.appendChild(el('p', { text: s[1] }));
+            });
+            var db = str(item.database);
+            if (db) {
+                var src = el('p', { class: 'muted' }, [document.createTextNode('Source: ')]);
+                var url = str(item.url);
+                src.appendChild(/^https:\/\//.test(url) ? el('a', { href: url, rel: 'noopener noreferrer', target: '_blank', text: db }) : document.createTextNode(db));
+                container.appendChild(src);
+            }
+        }
+        if (content) {
+            container.appendChild(factList(content.facts));
+            var link = str(content.link);
+            if (/^https?:\/\//.test(link)) {
+                container.appendChild(el('p', {}, [el('a', { class: 'btn', href: link, rel: 'noopener noreferrer nofollow', target: '_blank',
+                                                             text: content.type === 'location' ? 'Open map' : 'Open link' })]));
+            }
+        }
+        var notes = notesList(data);
+        if (notes) container.appendChild(notes);
+        var details = codeDetails(data);
+        if (details) container.appendChild(details);
+        container.appendChild(actionButtons(data, opts, false));
+    }
+
     function render(container, data, opts) {
         opts = opts || {};
+        container.textContent = '';
+        if (data && data.kind && data.kind !== 'food') { renderGeneric(container, data, opts); return; }
         var d = (data && data.dashboard) || {};
         var off = (data && data.open_food_facts) || {};
-        container.textContent = '';
 
         var img = safeImage(off.image_url);
         var head = el('div', { class: 'result-head' }, [
@@ -105,6 +198,8 @@ window.FPS = (function () {
                            el('p', { text: str(d['Brand'], 'Brand not available') + (off.barcode ? ' · ' + off.barcode : '') })])
         ]);
         container.appendChild(head);
+        var warn = warningBox(str(data.warning));
+        if (warn) container.appendChild(warn);
 
         var vegStatus = str(d['Veg Status'], 'Not confirmed');
         var vegNode = el('span', {}, [el('span', { class: 'veg-dot ' + vegClass(vegStatus), 'aria-hidden': 'true' }), document.createTextNode(vegStatus)]);
@@ -139,19 +234,9 @@ window.FPS = (function () {
         var table = nutritionTable(off.nutriments || {});
         if (table) { container.appendChild(el('h3', { text: 'Nutrition per 100 g' })); container.appendChild(table); }
 
-        var actions = el('div', { class: 'controls' });
-        var saveBtn = el('button', { class: 'btn', type: 'button', text: store.isSaved(data) ? 'Remove from saved' : 'Save product' });
-        saveBtn.addEventListener('click', function () {
-            var nowSaved = store.toggleSaved(data);
-            saveBtn.textContent = nowSaved ? 'Remove from saved' : 'Save product';
-            if (opts.onChange) opts.onChange();
-            if (opts.status) opts.status(nowSaved ? 'Saved in this browser.' : 'Removed from saved.', 'ok');
-        });
-        var pdfBtn = el('button', { class: 'btn', type: 'button', text: 'Download PDF' });
-        pdfBtn.addEventListener('click', function () { downloadPdf(data, pdfBtn, opts.status); });
-        actions.appendChild(saveBtn);
-        actions.appendChild(pdfBtn);
-        container.appendChild(actions);
+        var details = codeDetails(data);
+        if (details) container.appendChild(details);
+        container.appendChild(actionButtons(data, opts, true));
     }
 
     async function downloadPdf(data, btn, status) {
@@ -179,5 +264,6 @@ window.FPS = (function () {
         };
     }
 
-    return { el: el, render: render, store: store, safeImage: safeImage, statusFn: statusFn, str: str };
+    return { el: el, render: render, store: store, safeImage: safeImage, statusFn: statusFn, str: str,
+             titleOf: titleOf, kindLabel: function (k) { return KIND_LABELS[k] || ''; } };
 })();

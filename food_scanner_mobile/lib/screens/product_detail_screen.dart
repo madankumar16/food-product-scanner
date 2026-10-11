@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/product.dart';
 import '../services/product_provider.dart';
 import '../widgets/nutriscore_widget.dart';
+import 'code_result_screen.dart';
 
 class ProductDetailScreen extends StatelessWidget {
   final Product product;
@@ -11,12 +12,16 @@ class ProductDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (!product.isFood) return CodeResultScreen(product: product);
     final provider = Provider.of<ProductProvider>(context);
+    final vegStatus = product.vegStatus ?? 'Not confirmed';
+    final isNonVeg = vegStatus.toLowerCase().contains('non');
+    final isVeg = !isNonVeg && (vegStatus == 'Vegetarian' || vegStatus == 'Vegan');
     final isFav = provider.isFavorite(product.barcode);
     final alerts = provider.checkProductWarnings(product);
 
     Color safetyColor;
-    switch (product.safetyColor.toUpperCase()) {
+    switch ((product.safetyColor ?? '').toUpperCase()) {
       case 'GREEN':
         safetyColor = Colors.greenAccent.shade400;
         break;
@@ -114,7 +119,7 @@ class ProductDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    product.brand,
+                    product.brand ?? 'Brand not available',
                     style: const TextStyle(
                       fontSize: 16,
                       color: Color(0xFF38BDF8), // Neon blue
@@ -129,6 +134,22 @@ class ProductDetailScreen extends StatelessWidget {
                 ],
               ),
             ),
+
+            if (product.warning != null)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.redAccent.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.redAccent.withOpacity(0.5), width: 1.5),
+                  ),
+                  child: Text(product.warning!,
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, height: 1.4)),
+                ),
+              ),
 
             // Real-Time Dietary Profile Warnings / Alerts Block
             if (alerts.isNotEmpty) ...[
@@ -201,7 +222,7 @@ class ProductDetailScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            'Safety Rating',
+                            'Ingredient score',
                             style: TextStyle(color: Colors.white70, fontSize: 13),
                           ),
                           const SizedBox(height: 8),
@@ -218,7 +239,7 @@ class ProductDetailScreen extends StatelessWidget {
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
-                                  product.safetyColor,
+                                  product.safetyColor ?? 'Not available',
                                   style: TextStyle(
                                     color: safetyColor,
                                     fontSize: 16,
@@ -230,7 +251,7 @@ class ProductDetailScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Score: ${product.safetyScore}/100',
+                            product.safetyScore != null ? 'Score: ${product.safetyScore}/100' : 'No ingredients to score',
                             style: const TextStyle(color: Colors.white54, fontSize: 12),
                           ),
                         ],
@@ -268,12 +289,8 @@ class ProductDetailScreen extends StatelessWidget {
                 child: Row(
                   children: [
                     Icon(
-                      product.vegStatus.toLowerCase().contains('non')
-                          ? Icons.restaurant
-                          : Icons.eco,
-                      color: product.vegStatus.toLowerCase().contains('non')
-                          ? Colors.orangeAccent
-                          : Colors.greenAccent,
+                      isNonVeg ? Icons.restaurant : (isVeg ? Icons.eco : Icons.help_outline),
+                      color: isNonVeg ? Colors.orangeAccent : (isVeg ? Colors.greenAccent : Colors.white54),
                     ),
                     const SizedBox(width: 12),
                     const Text(
@@ -281,11 +298,9 @@ class ProductDetailScreen extends StatelessWidget {
                       style: TextStyle(color: Colors.white70, fontSize: 14),
                     ),
                     Text(
-                      product.vegStatus,
+                      vegStatus,
                       style: TextStyle(
-                        color: product.vegStatus.toLowerCase().contains('non')
-                            ? Colors.orangeAccent
-                            : Colors.greenAccent,
+                        color: isNonVeg ? Colors.orangeAccent : (isVeg ? Colors.greenAccent : Colors.white54),
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                       ),
@@ -324,7 +339,7 @@ class ProductDetailScreen extends StatelessWidget {
                   ),
                 ),
               ...product.healthWarnings.map((warning) {
-                final ing = warning['ingredient'] ?? 'Unknown Ingredient';
+                final ing = warning['ingredient']?.toString() ?? '';
                 final conditions = (warning['conditions'] as List?)?.join(', ') ?? 'Contains allergen';
                 return Card(
                   margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
@@ -360,7 +375,7 @@ class ProductDetailScreen extends StatelessWidget {
                 ),
                 child: Text(
                   product.ingredients.isEmpty
-                      ? 'No ingredients list parsed.'
+                      ? 'No ingredients list available. Check the pack.'
                       : product.ingredients.join(', '),
                   style: const TextStyle(color: Colors.white70, fontSize: 14, height: 1.5),
                 ),
@@ -368,6 +383,20 @@ class ProductDetailScreen extends StatelessWidget {
             ),
 
             const SizedBox(height: 24),
+
+            if (product.codeFacts.isNotEmpty) ...[
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: Text('Barcode details',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+              ),
+              const SizedBox(height: 10),
+              ...product.codeFacts.map((f) => Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
+                    child: Text('${f[0]}: ${f[1]}', style: const TextStyle(color: Colors.white70, fontSize: 14)),
+                  )),
+              const SizedBox(height: 24),
+            ],
 
             // AI Expert Summary
             if (product.expertSummary != null && product.expertSummary!.isNotEmpty) ...[

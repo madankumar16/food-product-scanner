@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}{{ site.name }}{% endblock %}</title>
-    <meta name="description" content="{% block description %}Scan a food barcode to see ingredients, allergens, vegetarian status and Nutri-Score.{% endblock %}">
+    <meta name="description" content="{% block description %}Scan before use: check any barcode or QR code. Food, cosmetics, pet food, household products, books, medicine expiry dates, links and payments.{% endblock %}">
     <meta name="theme-color" content="#111827">
     <link rel="icon" href="{{ url_for('static', filename='img/favicon.svg') }}" type="image/svg+xml">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/site.css') }}">
@@ -43,7 +43,7 @@
     <footer class="site-footer">
         <div class="wrap footer-grid">
             <div>
-                <p>&copy; {{ current_year }} {{ site.owner or site.name }}. Product data from <a href="https://world.openfoodfacts.org" rel="noopener">Open Food Facts</a> (ODbL).</p>
+                <p>&copy; {{ current_year }} {{ site.owner or site.name }}. Product data from <a href="https://world.openfoodfacts.org" rel="noopener">Open Food Facts</a>, <a href="https://world.openbeautyfacts.org" rel="noopener">Open Beauty Facts</a>, <a href="https://world.openpetfoodfacts.org" rel="noopener">Open Pet Food Facts</a>, <a href="https://world.openproductsfacts.org" rel="noopener">Open Products Facts</a> and <a href="https://openlibrary.org" rel="noopener">Open Library</a> (open licences).</p>
                 {% if site.address %}<p>{{ site.address }}</p>{% endif %}
                 {% if site.email %}<p><a href="mailto:{{ site.email }}">{{ site.email }}</a></p>{% endif %}
                 {% if site.phone %}<p><a href="tel:{{ site.phone | replace(' ', '') }}">{{ site.phone }}</a></p>{% endif %}

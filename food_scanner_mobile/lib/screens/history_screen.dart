@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../models/product.dart';
 import '../services/product_provider.dart';
 import 'product_detail_screen.dart';
 
@@ -57,7 +58,7 @@ class HistoryTab extends StatelessWidget {
     if (provider.history.isEmpty) {
       return const EmptyStatePlaceholder(
         icon: Icons.qr_code_scanner,
-        message: 'No scan history yet.\nTry scanning some barcodes!',
+        message: 'No scans yet.\nScan any barcode or QR code.',
       );
     }
 
@@ -66,10 +67,10 @@ class HistoryTab extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.all(12.0),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.between,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '${provider.history.length} products scanned',
+                '${provider.history.length} scans',
                 style: const TextStyle(color: Colors.white60, fontSize: 13),
               ),
               TextButton.icon(
@@ -125,7 +126,7 @@ class FavoritesTab extends StatelessWidget {
     if (provider.favorites.isEmpty) {
       return const EmptyStatePlaceholder(
         icon: Icons.favorite_border,
-        message: 'No favorites added yet.\nTap the heart icon on any product!',
+        message: 'Nothing saved yet.\nTap the heart on any result.',
       );
     }
 
@@ -134,10 +135,10 @@ class FavoritesTab extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.all(12.0),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.between,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '${provider.favorites.length} products favorited',
+                '${provider.favorites.length} saved',
                 style: const TextStyle(color: Colors.white60, fontSize: 13),
               ),
               TextButton.icon(
@@ -180,14 +181,14 @@ class FavoritesTab extends StatelessWidget {
 }
 
 class ProductListTile extends StatelessWidget {
-  final dynamic product;
+  final Product product;
 
   const ProductListTile({Key? key, required this.product}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     Color safetyColor;
-    switch (product.safetyColor.toString().toUpperCase()) {
+    switch ((product.safetyColor ?? '').toUpperCase()) {
       case 'GREEN':
         safetyColor = Colors.greenAccent.shade400;
         break;
@@ -216,9 +217,9 @@ class ProductListTile extends StatelessWidget {
                   height: 50,
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) =>
-                      const Icon(Icons.fastfood, color: Colors.white54, size: 30),
+                      Icon(_iconFor(product), color: Colors.white54, size: 30),
                 )
-              : const Icon(Icons.fastfood, color: Colors.white54, size: 30),
+              : Icon(_iconFor(product), color: Colors.white54, size: 30),
         ),
         title: Text(
           product.name,
@@ -230,9 +231,9 @@ class ProductListTile extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 4),
-            Text(product.brand, style: const TextStyle(color: Colors.white60, fontSize: 13)),
+            Text(product.brand ?? product.kindLabel, style: const TextStyle(color: Colors.white60, fontSize: 13)),
             const SizedBox(height: 6),
-            Row(
+            if (product.isFood) Row(
               children: [
                 Container(
                   width: 10,
@@ -241,7 +242,7 @@ class ProductListTile extends StatelessWidget {
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  'Safety: ${product.safetyScore}/100',
+                  product.safetyScore != null ? 'Score: ${product.safetyScore}/100' : 'No score',
                   style: TextStyle(color: safetyColor, fontSize: 12, fontWeight: FontWeight.bold),
                 ),
                 if (product.nutriscore != null) ...[
@@ -296,12 +297,25 @@ class EmptyStatePlaceholder extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             message,
-            textAlign: Center,
+            textAlign: TextAlign.center,
             style: const TextStyle(color: Colors.white30, fontSize: 15, height: 1.4),
           ),
         ],
       ),
     );
+  }
+}
+
+IconData _iconFor(Product p) {
+  switch (p.kind) {
+    case 'food':
+      return Icons.fastfood;
+    case 'product':
+      return Icons.inventory_2_outlined;
+    case 'book':
+      return Icons.menu_book_outlined;
+    default:
+      return Icons.qr_code_2;
   }
 }
 
@@ -316,8 +330,8 @@ void _confirmClear(BuildContext context, ProductProvider provider, bool isHistor
       ),
       content: Text(
         isHistory
-            ? 'Are you sure you want to delete all scanned products?'
-            : 'Are you sure you want to remove all favorited products?',
+            ? 'Delete all scans from this phone?'
+            : 'Remove everything you saved?',
         style: const TextStyle(color: Colors.white70),
       ),
       actions: [

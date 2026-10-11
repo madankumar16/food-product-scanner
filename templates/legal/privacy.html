@@ -13,14 +13,14 @@
 
     <h2>What happens when you scan</h2>
     <ul>
-        <li><strong>Barcodes</strong> are sent to our server, which looks them up in the free <a href="https://world.openfoodfacts.org" rel="noopener">Open Food Facts</a> database. Your IP address is not passed on.</li>
-        <li><strong>Photos</strong> are checked on our server for a barcode and then discarded. We don't save them.</li>
+        <li><strong>Scanned codes</strong> (the number or text inside a barcode or QR code) are sent to our server. Product and book numbers are looked up in the free <a href="https://world.openfoodfacts.org" rel="noopener">Open Food Facts</a>, <a href="https://world.openbeautyfacts.org" rel="noopener">Open Beauty Facts</a>, <a href="https://world.openpetfoodfacts.org" rel="noopener">Open Pet Food Facts</a>, <a href="https://world.openproductsfacts.org" rel="noopener">Open Products Facts</a> and <a href="https://openlibrary.org" rel="noopener">Open Library</a> databases. Other codes, such as links, payment requests or Wi-Fi details, are only decoded and are never passed on or stored. Our server never opens links from codes. Your IP address is not passed on.</li>
+        <li><strong>Photos</strong> are checked on our server for a barcode or QR code and then discarded. We don't save them.</li>
         {% if ai_enabled %}<li><strong>Label reading:</strong> if no barcode is found, the photo is sent to Google's Gemini service to read the label text. Google processes it under its own <a href="https://ai.google.dev/gemini-api/terms" rel="noopener">terms</a>. Don't photograph anything personal.</li>{% endif %}
-        <li><strong>Camera:</strong> the live barcode scanner runs entirely in your browser. No video is sent to us.</li>
+        <li><strong>Camera:</strong> the live scanner reads codes entirely in your browser. No video is sent to us.</li>
     </ul>
 
     <h2>Your history</h2>
-    <p>Recent scans and saved products are stored only in your browser. You can delete them any time on the <a href="{{ url_for('history') }}">History page</a>.</p>
+    <p>Recent scans and saved items are stored only in your browser. You can delete them any time on the <a href="{{ url_for('history') }}">History page</a>.</p>
 
     <h2>Server logs</h2>
     <p>Our host keeps standard request logs (such as IP address and time) for security, and we briefly count requests per IP to stop abuse. These are not used for anything else.</p>
