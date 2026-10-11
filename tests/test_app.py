@@ -248,6 +248,21 @@ def test_scan_rate_limited(client):
     assert codes[0] == 200 and 429 in codes
 
 
+def test_static_urls_are_versioned_and_cacheable(client):
+    html = client.get("/").get_data(as_text=True)
+    assets = re.findall(r'(?:href|src)="(/static/[^"]+)"', html)
+    assert assets and all(re.search(r"\?v=[0-9a-f]{10}$", a) for a in assets)
+    resp = client.get(assets[0])
+    assert resp.status_code == 200
+    assert "immutable" in resp.headers["Cache-Control"]
+
+
+def test_error_responses_are_never_cached(client):
+    resp = client.get("/static/css/missing.css")
+    assert resp.status_code == 404
+    assert resp.headers["Cache-Control"] == "no-store"
+
+
 def test_photo_rate_limited(client):
     codes = []
     for _ in range(10):
