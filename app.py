@@ -5,6 +5,7 @@ All configuration comes from environment variables; see .env.example.
 The site stores no personal data: scan history lives in the visitor's own
 browser, and the server keeps nothing between requests.
 """
+import hashlib
 import logging
 import os
 import threading
@@ -105,9 +106,33 @@ def security_headers(resp):
     resp.headers.setdefault("Permissions-Policy", "camera=(self), microphone=(), geolocation=(), payment=()")
     resp.headers.setdefault("Cross-Origin-Opener-Policy", "same-origin")
     resp.headers.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
-    if request.path.startswith(("/scan", "/api/")):
+    if request.path.startswith(("/scan", "/api/")) or resp.status_code >= 400:
+        # Never let a browser or the CDN keep an error page for a CSS/JS URL.
         resp.headers["Cache-Control"] = "no-store"
+    elif request.path.startswith("/static/") and request.args.get("v"):
+        # Versioned URLs change whenever the file does, so they can be kept.
+        resp.headers["Cache-Control"] = "public, max-age=31536000, immutable"
     return resp
+
+
+_static_versions = {}
+
+
+@app.url_defaults
+def static_cache_buster(endpoint, values):
+    """Add ?v=<content hash> to static URLs so browsers fetch a fresh copy
+    whenever a file changes (or was cached while broken)."""
+    if endpoint != "static" or "filename" not in values:
+        return
+    filename = values["filename"]
+    if filename not in _static_versions:
+        try:
+            with open(os.path.join(app.static_folder, filename), "rb") as f:
+                _static_versions[filename] = hashlib.sha256(f.read()).hexdigest()[:10]
+        except OSError:
+            _static_versions[filename] = None
+    if _static_versions[filename]:
+        values["v"] = _static_versions[filename]
 
 
 @app.context_processor
