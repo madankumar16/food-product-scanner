@@ -9,10 +9,13 @@ import '../services/product_provider.dart';
 class CodeResultScreen extends StatelessWidget {
   final Product product;
 
-  const CodeResultScreen({Key? key, required this.product}) : super(key: key);
+  /// True when shown inside the Barcode tab (no back arrow).
+  final bool embedded;
 
-  static const _card = Color(0xFF1E293B);
-  static const _accent = Color(0xFF38BDF8);
+  const CodeResultScreen({Key? key, required this.product, this.embedded = false}) : super(key: key);
+
+  static const _card = Color(0xFFFFFFFF);
+  static const _accent = Color(0xFF1F6B45);
 
   IconData get _icon {
     switch (product.kind) {
@@ -34,7 +37,7 @@ class CodeResultScreen extends StatelessWidget {
 
   Widget _heading(String text) => Padding(
         padding: const EdgeInsets.fromLTRB(20, 24, 20, 10),
-        child: Text(text, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+        child: Text(text, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF17221C))),
       );
 
   Widget _factTable(BuildContext context, List<List<String>> facts) => Padding(
@@ -46,10 +49,10 @@ class CodeResultScreen extends StatelessWidget {
             children: facts
                 .map((f) => ListTile(
                       dense: true,
-                      title: Text(f[0], style: const TextStyle(color: Colors.white54, fontSize: 12)),
-                      subtitle: SelectableText(f[1], style: const TextStyle(color: Colors.white, fontSize: 15)),
+                      title: Text(f[0], style: const TextStyle(color: Color(0xFF4A5A50), fontSize: 12)),
+                      subtitle: SelectableText(f[1], style: const TextStyle(color: Color(0xFF17221C), fontSize: 15)),
                       trailing: IconButton(
-                        icon: const Icon(Icons.copy, size: 18, color: Colors.white38),
+                        icon: const Icon(Icons.copy, size: 18, color: Color(0xFF6B7A70)),
                         tooltip: 'Copy',
                         onPressed: () => _copy(context, f[1], f[0]),
                       ),
@@ -65,18 +68,21 @@ class CodeResultScreen extends StatelessWidget {
     final isFav = provider.isFavorite(product.barcode);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: const Color(0xFFF2F4EE),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
+        automaticallyImplyLeading: false,
+        leading: embedded
+            ? null
+            : IconButton(
+                icon: const Icon(Icons.arrow_back, color: Color(0xFF17221C)),
+                onPressed: () => Navigator.pop(context),
+              ),
         actions: [
           IconButton(
             icon: Icon(isFav ? Icons.favorite : Icons.favorite_border,
-                color: isFav ? Colors.redAccent : Colors.white, size: 28),
+                color: isFav ? Colors.red.shade700 : Color(0xFF17221C), size: 28),
             onPressed: () => provider.toggleFavorite(product),
           ),
           const SizedBox(width: 8),
@@ -98,8 +104,8 @@ class CodeResultScreen extends StatelessWidget {
                   child: product.imageUrl != null
                       ? Image.network(product.imageUrl!,
                           fit: BoxFit.contain,
-                          errorBuilder: (_, __, ___) => Icon(_icon, size: 72, color: Colors.white30))
-                      : Icon(_icon, size: 72, color: Colors.white30),
+                          errorBuilder: (_, __, ___) => Icon(_icon, size: 72, color: Color(0xFF8A968E)))
+                      : Icon(_icon, size: 72, color: Color(0xFF8A968E)),
                 ),
               ),
             ),
@@ -112,7 +118,7 @@ class CodeResultScreen extends StatelessWidget {
                       style: const TextStyle(color: _accent, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1)),
                   const SizedBox(height: 4),
                   Text(product.name,
-                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
+                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF17221C))),
                   if (product.brand != null) ...[
                     const SizedBox(height: 4),
                     Text(product.brand!, style: const TextStyle(fontSize: 16, color: _accent)),
@@ -127,18 +133,18 @@ class CodeResultScreen extends StatelessWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.redAccent.withOpacity(0.12),
+                    color: Colors.red.shade700.withOpacity(0.12),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.redAccent.withOpacity(0.5), width: 1.5),
+                    border: Border.all(color: Colors.red.shade700.withOpacity(0.5), width: 1.5),
                   ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(Icons.warning_amber_rounded, color: Colors.redAccent),
+                      const Icon(Icons.warning_amber_rounded, color: Colors.red.shade700),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(product.warning!,
-                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, height: 1.4)),
+                            style: const TextStyle(color: Color(0xFF17221C), fontWeight: FontWeight.bold, height: 1.4)),
                       ),
                     ],
                   ),
@@ -152,7 +158,7 @@ class CodeResultScreen extends StatelessWidget {
                   _heading(s[0]),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Text(s[1], style: const TextStyle(color: Colors.white70, fontSize: 14, height: 1.5)),
+                    child: Text(s[1], style: const TextStyle(color: Color(0xFF3D4A42), fontSize: 14, height: 1.5)),
                   ),
                 ]),
             if (product.link != null)
@@ -168,11 +174,11 @@ class CodeResultScreen extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
                 child: Text('Source: ${product.database}${product.sourceUrl != null ? ' (${product.sourceUrl})' : ''}',
-                    style: const TextStyle(color: Colors.white38, fontSize: 12)),
+                    style: const TextStyle(color: Color(0xFF6B7A70), fontSize: 12)),
               ),
             ...product.notes.map((n) => Padding(
                   padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-                  child: Text(n, style: const TextStyle(color: Colors.white60, fontSize: 14, height: 1.4)),
+                  child: Text(n, style: const TextStyle(color: Color(0xFF4A5A50), fontSize: 14, height: 1.4)),
                 )),
             if (product.codeFacts.isNotEmpty) ...[
               _heading('Barcode details'),

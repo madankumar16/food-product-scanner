@@ -1,16 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'services/product_provider.dart';
+
+import 'screens/history_screen.dart';
+import 'screens/photo_screen.dart';
+import 'screens/result_tab.dart';
 import 'screens/scanner_screen.dart';
 import 'screens/search_screen.dart';
-import 'screens/history_screen.dart';
-import 'screens/profile_screen.dart';
+import 'screens/settings_screen.dart';
+import 'services/app_actions.dart';
+import 'services/product_provider.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => ProductProvider(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ProductProvider()),
+        ChangeNotifierProvider(create: (_) => AppNav()),
+      ],
       child: const FoodScannerApp(),
     ),
   );
@@ -25,79 +32,104 @@ class FoodScannerApp extends StatelessWidget {
       title: 'Scan Before Use',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        brightness: Brightness.dark,
-        primaryColor: const Color(0xFF0284C7),
-        scaffoldBackgroundColor: const Color(0xFF0F172A),
-        cardColor: const Color(0xFF1E293B),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF1E293B),
-          elevation: 0,
-        ),
         useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(seedColor: AppColors.green, primary: AppColors.green, surface: AppColors.bg),
+        scaffoldBackgroundColor: AppColors.bg,
+        appBarTheme: const AppBarTheme(backgroundColor: AppColors.bg, foregroundColor: AppColors.ink, elevation: 0),
       ),
       home: const MainNavigationShell(),
     );
   }
 }
 
-class MainNavigationShell extends StatefulWidget {
+enum _MenuItem { pdf, history, nutriScore }
+
+class MainNavigationShell extends StatelessWidget {
   const MainNavigationShell({Key? key}) : super(key: key);
 
   @override
-  State<MainNavigationShell> createState() => _MainNavigationShellState();
-}
-
-class _MainNavigationShellState extends State<MainNavigationShell> {
-  int _currentIndex = 0;
-
-  @override
   Widget build(BuildContext context) {
+    final nav = context.watch<AppNav>();
+    final provider = context.watch<ProductProvider>();
+    final latest = provider.history.isNotEmpty ? provider.history.first : null;
+
     return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: [
-          // The camera only runs while the Scan tab is showing.
-          ScannerScreen(active: _currentIndex == 0),
-          const SearchScreen(),
-          const HistoryScreen(),
-          const ProfileScreen(),
+      appBar: AppBar(
+        toolbarHeight: 92,
+        titleSpacing: 20,
+        title: const Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Scan Before Use', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppColors.ink)),
+            Text('Point at a barcode or label', style: TextStyle(fontSize: 16, color: AppColors.text2)),
+          ],
+        ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: PopupMenuButton<_MenuItem>(
+              tooltip: 'More options',
+              offset: const Offset(0, 60),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+              color: Colors.white,
+              style: IconButton.styleFrom(
+                backgroundColor: Colors.white,
+                side: const BorderSide(color: AppColors.line),
+                fixedSize: const Size(52, 52),
+              ),
+              icon: const Icon(Icons.more_vert, color: AppColors.ink),
+              onSelected: (item) {
+                switch (item) {
+                  case _MenuItem.pdf:
+                    shareReport(context, latest);
+                  case _MenuItem.history:
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const HistoryScreen()));
+                  case _MenuItem.nutriScore:
+                    openSitePage(context, '/nutri-score');
+                }
+              },
+              itemBuilder: (_) => [
+                PopupMenuItem(
+                  value: _MenuItem.pdf,
+                  enabled: latest != null,
+                  child: const ListTile(leading: Icon(Icons.download, color: AppColors.green), title: Text('Download PDF report')),
+                ),
+                const PopupMenuItem(
+                  value: _MenuItem.history,
+                  child: ListTile(leading: Icon(Icons.history, color: AppColors.green), title: Text('History')),
+                ),
+                const PopupMenuItem(
+                  value: _MenuItem.nutriScore,
+                  child: ListTile(leading: Icon(Icons.eco_outlined, color: AppColors.green), title: Text('Nutri-Score calculator')),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        backgroundColor: const Color(0xFF1E293B),
-        selectedItemColor: const Color(0xFF38BDF8),
-        unselectedItemColor: Colors.white38,
-        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-        unselectedLabelStyle: const TextStyle(fontSize: 11),
-        type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.qr_code_scanner),
-            activeIcon: Icon(Icons.qr_code_scanner, color: Color(0xFF38BDF8)),
-            label: 'Scan',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.search),
-            activeIcon: Icon(Icons.search, color: Color(0xFF38BDF8)),
-            label: 'Lookup',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.history),
-            activeIcon: Icon(Icons.history, color: Color(0xFF38BDF8)),
-            label: 'Scans',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person, color: Color(0xFF38BDF8)),
-            label: 'Profile',
-          ),
+      body: IndexedStack(
+        index: nav.index,
+        children: [
+          // The camera only runs while Home is showing.
+          ScannerScreen(active: nav.index == AppNav.home),
+          const SearchScreen(),
+          const ResultTab(),
+          const PhotoScreen(),
+          const SettingsScreen(),
         ],
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
+      ),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: nav.index,
+        onDestinationSelected: nav.go,
+        backgroundColor: Colors.white,
+        indicatorColor: AppColors.greenSoft,
+        destinations: const [
+          NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: 'Home'),
+          NavigationDestination(icon: Icon(Icons.tag), label: 'Number'),
+          NavigationDestination(icon: Icon(Icons.view_week_outlined), selectedIcon: Icon(Icons.view_week), label: 'Barcode'),
+          NavigationDestination(icon: Icon(Icons.photo_camera_outlined), selectedIcon: Icon(Icons.photo_camera), label: 'Photo'),
+          NavigationDestination(icon: Icon(Icons.settings_outlined), selectedIcon: Icon(Icons.settings), label: 'Settings'),
+        ],
       ),
     );
   }

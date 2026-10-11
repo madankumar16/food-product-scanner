@@ -21,13 +21,13 @@ class ProfileScreen extends StatelessWidget {
     ];
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: const Color(0xFFF2F4EE),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: const Color(0xFFFFFFFF),
         elevation: 0,
         title: const Text(
           'Dietary Profile',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+          style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF17221C)),
         ),
       ),
       body: SingleChildScrollView(
@@ -38,7 +38,7 @@ class ProfileScreen extends StatelessWidget {
             const Text(
               'Diet & Allergen Alerts',
               style: TextStyle(
-                color: Colors.white,
+                color: Color(0xFF17221C),
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
@@ -46,7 +46,7 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 8),
             const Text(
               'Customize your alerts. If a scanned product violates your profile, we will show a prominent alert card on the scan results.',
-              style: TextStyle(color: Colors.white54, fontSize: 13, height: 1.4),
+              style: TextStyle(color: Color(0xFF4A5A50), fontSize: 13, height: 1.4),
             ),
             const SizedBox(height: 24),
             
@@ -54,7 +54,7 @@ class ProfileScreen extends StatelessWidget {
             const Text(
               'DIETARY REQUIREMENT',
               style: TextStyle(
-                color: Color(0xFF38BDF8),
+                color: Color(0xFF1F6B45),
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 1.2,
@@ -63,15 +63,15 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 10),
             Container(
               decoration: BoxDecoration(
-                color: const Color(0xFF1E293B),
+                color: const Color(0xFFFFFFFF),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Column(
                 children: [
                   _buildDietRadio(context, provider, 'none', 'No Dietary Preference', 'Check ingredients manually'),
-                  const Divider(color: Colors.white10, height: 1),
+                  const Divider(color: Color(0xFFE8F2EC), height: 1),
                   _buildDietRadio(context, provider, 'vegetarian', 'Vegetarian Diet', 'Flag products containing meat, poultry, or fish'),
-                  const Divider(color: Colors.white10, height: 1),
+                  const Divider(color: Color(0xFFE8F2EC), height: 1),
                   _buildDietRadio(context, provider, 'vegan', 'Vegan Diet', 'Flag products containing meat, dairy, eggs, honey, etc.'),
                 ],
               ),
@@ -83,7 +83,7 @@ class ProfileScreen extends StatelessWidget {
             const Text(
               'ALLERGEN WARNINGS',
               style: TextStyle(
-                color: Color(0xFF38BDF8),
+                color: Color(0xFF1F6B45),
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 1.2,
@@ -93,7 +93,7 @@ class ProfileScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
               decoration: BoxDecoration(
-                color: const Color(0xFF1E293B),
+                color: const Color(0xFFFFFFFF),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: GridView.builder(
@@ -117,11 +117,11 @@ class ProfileScreen extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       decoration: BoxDecoration(
                         color: isEnabled
-                            ? Colors.redAccent.withOpacity(0.1)
-                            : const Color(0xFF0F172A),
+                            ? Colors.red.shade700.withOpacity(0.1)
+                            : const Color(0xFFF2F4EE),
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
-                          color: isEnabled ? Colors.redAccent.withOpacity(0.5) : Colors.transparent,
+                          color: isEnabled ? Colors.red.shade700.withOpacity(0.5) : Colors.transparent,
                           width: 1,
                         ),
                       ),
@@ -132,7 +132,7 @@ class ProfileScreen extends StatelessWidget {
                             child: Text(
                               allergen,
                               style: TextStyle(
-                                color: isEnabled ? Colors.redAccent : Colors.white70,
+                                color: isEnabled ? Colors.red.shade700 : Color(0xFF3D4A42),
                                 fontWeight: isEnabled ? FontWeight.bold : FontWeight.normal,
                                 fontSize: 14,
                               ),
@@ -140,7 +140,7 @@ class ProfileScreen extends StatelessWidget {
                           ),
                           Icon(
                             isEnabled ? Icons.warning_amber_rounded : Icons.check_circle_outline,
-                            color: isEnabled ? Colors.redAccent : Colors.white30,
+                            color: isEnabled ? Colors.red.shade700 : Color(0xFF8A968E),
                             size: 20,
                           ),
                         ],
@@ -173,18 +173,18 @@ class ProfileScreen extends StatelessWidget {
           provider.setDietaryPreference(val);
         }
       },
-      activeColor: const Color(0xFF38BDF8),
+      activeColor: const Color(0xFF1F6B45),
       title: Text(
         title,
         style: TextStyle(
-          color: isSelected ? const Color(0xFF38BDF8) : Colors.white,
+          color: isSelected ? const Color(0xFF1F6B45) : Color(0xFF17221C),
           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
           fontSize: 15,
         ),
       ),
       subtitle: Text(
         subtitle,
-        style: const TextStyle(color: Colors.white38, fontSize: 12),
+        style: const TextStyle(color: Color(0xFF6B7A70), fontSize: 12),
       ),
     );
   }
