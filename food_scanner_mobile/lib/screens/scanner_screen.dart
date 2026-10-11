@@ -6,21 +6,93 @@ import '../services/product_provider.dart';
 import 'product_detail_screen.dart';
 
 class ScannerScreen extends StatefulWidget {
-  const ScannerScreen({Key? key}) : super(key: key);
+  /// False while another tab is showing: the camera is switched off so it
+  /// can't pick up codes in the background.
+  final bool active;
+
+  const ScannerScreen({Key? key, this.active = true}) : super(key: key);
 
   @override
   State<ScannerScreen> createState() => _ScannerScreenState();
 }
 
-class _ScannerScreenState extends State<ScannerScreen> {
+class _ScannerScreenState extends State<ScannerScreen> with WidgetsBindingObserver {
   // No format list: reads every 1D barcode and 2D code (QR, Data Matrix, PDF417, Aztec...).
-  final MobileScannerController _scannerController = MobileScannerController(detectionSpeed: DetectionSpeed.noDuplicates);
+  // `normal` speed (not `noDuplicates`) so the same product can be scanned again;
+  // repeats are filtered below instead.
+  final MobileScannerController _scannerController = MobileScannerController(
+    detectionSpeed: DetectionSpeed.normal,
+    autoStart: false,
+  );
   final TextEditingController _barcodeInputController = TextEditingController();
   bool _isLoading = false;
   bool _isFlashOn = false;
+  bool _showingResult = false; // a result screen or error dialog is open
+  String? _lastCode;
+  DateTime _lastCodeAt = DateTime.fromMillisecondsSinceEpoch(0);
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    // Start once the camera preview widget is on screen.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _startCamera());
+  }
+
+  // Turn the camera off while the app is in the background.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // The permission prompt itself makes the app "inactive"; ignore that.
+    if (!_scannerController.value.hasCameraPermission) return;
+    if (state == AppLifecycleState.resumed) {
+      _startCamera();
+    } else if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+      _stopCamera();
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant ScannerScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.active != oldWidget.active) {
+      widget.active ? _startCamera() : _stopCamera();
+    }
+  }
+
+  Future<void> _startCamera() async {
+    if (!mounted || !widget.active || _showingResult) return;
+    try {
+      await _scannerController.start();
+    } catch (e) {
+      debugPrint('Camera start failed: $e'); // already running, or no permission
+    }
+  }
+
+  Future<void> _stopCamera() async {
+    try {
+      await _scannerController.stop();
+    } catch (e) {
+      debugPrint('Camera stop failed: $e');
+    }
+  }
+
+  void _onDetect(BarcodeCapture capture, ProductProvider provider) {
+    if (!widget.active || _isLoading || _showingResult) return;
+    final barcodes = capture.barcodes.where((b) => (b.rawValue ?? '').trim().isNotEmpty).toList();
+    if (barcodes.isEmpty) return;
+    final code = barcodes.first.rawValue!;
+    // The camera reports the same code many times a second: handle it once,
+    // but allow scanning it again a few seconds later.
+    final now = DateTime.now();
+    if (code == _lastCode && now.difference(_lastCodeAt) < const Duration(seconds: 3)) return;
+    _lastCode = code;
+    _lastCodeAt = now;
+    _processBarcode(code, provider, format: barcodes.first.format.name);
+  }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _scannerController.dispose();
     _barcodeInputController.dispose();
     super.dispose();
@@ -31,12 +103,11 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
     setState(() {
       _isLoading = true;
+      _showingResult = true;
     });
+    await _stopCamera();
 
     try {
-      // Pause scanner temporarily
-      _scannerController.stop();
-
       final product = await ApiService().scanCode(barcode, format: format ?? 'typed');
 
       // Save to local scan history
@@ -47,7 +118,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
       // Clear manual input
       _barcodeInputController.clear();
 
-      // Navigate to details screen
+      setState(() => _isLoading = false);
+      // Navigate to details screen; the camera stays off until the user comes back.
       await Navigator.push(
         context,
         MaterialPageRoute(
@@ -56,7 +128,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
       );
     } catch (e) {
       if (!mounted) return;
-      showDialog(
+      setState(() => _isLoading = false);
+      // Wait for the dialog to close before the camera starts again.
+      await showDialog(
         context: context,
         builder: (context) => AlertDialog(
           backgroundColor: const Color(0xFF1E293B),
@@ -74,9 +148,10 @@ class _ScannerScreenState extends State<ScannerScreen> {
       if (mounted) {
         setState(() {
           _isLoading = false;
+          _showingResult = false;
         });
-        // Restart scanner
-        _scannerController.start();
+        _lastCodeAt = DateTime.now(); // don't instantly re-read the code still in front of the camera
+        await _startCamera();
       }
     }
   }
@@ -92,12 +167,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
           // 1. Mobile Scanner Viewport
           MobileScanner(
             controller: _scannerController,
-            onDetect: (capture) {
-              final barcodes = capture.barcodes.where((b) => (b.rawValue ?? '').isNotEmpty).toList();
-              if (barcodes.isNotEmpty) {
-                _processBarcode(barcodes.first.rawValue!, provider, format: barcodes.first.format.name);
-              }
-            },
+            onDetect: (capture) => _onDetect(capture, provider),
           ),
 
           // 2. Scanner Target Overlay Frame (Glassmorphism + Neon overlay)

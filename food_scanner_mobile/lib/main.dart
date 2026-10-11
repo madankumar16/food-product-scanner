@@ -50,19 +50,18 @@ class MainNavigationShell extends StatefulWidget {
 class _MainNavigationShellState extends State<MainNavigationShell> {
   int _currentIndex = 0;
 
-  final List<Widget> _screens = const [
-    ScannerScreen(),
-    SearchScreen(),
-    HistoryScreen(),
-    ProfileScreen(),
-  ];
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: IndexedStack(
         index: _currentIndex,
-        children: _screens,
+        children: [
+          // The camera only runs while the Scan tab is showing.
+          ScannerScreen(active: _currentIndex == 0),
+          const SearchScreen(),
+          const HistoryScreen(),
+          const ProfileScreen(),
+        ],
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
