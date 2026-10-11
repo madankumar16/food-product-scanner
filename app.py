@@ -36,6 +36,7 @@ app.config.update(
     DEBUG=env_flag("FLASK_DEBUG", False),
     MAX_CONTENT_LENGTH=4 * 1024 * 1024,   # Vercel rejects bodies over 4.5 MB anyway
     JSON_SORT_KEYS=False,
+    SEND_FILE_MAX_AGE_DEFAULT=3600,     # cache CSS/JS/fonts for an hour
 )
 # Vercel and most hosts sit behind one proxy; trust it for client IP and HTTPS.
 if env_flag("TRUST_PROXY", True):

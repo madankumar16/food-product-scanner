@@ -67,6 +67,8 @@ def test_no_secrets_or_default_accounts_in_repo():
     tracked = subprocess.run(["git", "ls-files"], cwd=ROOT, capture_output=True, text=True).stdout.split()
     for name in tracked:
         path = ROOT / name
+        if path == Path(__file__).resolve():
+            continue  # this file contains the patterns it searches for
         if path.suffix in (".py", ".md", ".txt", ".html", ".js", ".json", ".yml", ".sh", ".bat", ".example") and path.exists():
             text = path.read_text(errors="ignore")
             assert not re.search(r"AIza[0-9A-Za-z_\-]{35}", text), name
