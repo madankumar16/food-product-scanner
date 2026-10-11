@@ -82,7 +82,7 @@ class CodeResultScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: Icon(isFav ? Icons.favorite : Icons.favorite_border,
-                color: isFav ? Colors.red.shade700 : Color(0xFF17221C), size: 28),
+                color: isFav ? Color(0xFFD32F2F) : Color(0xFF17221C), size: 28),
             onPressed: () => provider.toggleFavorite(product),
           ),
           const SizedBox(width: 8),
@@ -133,14 +133,14 @@ class CodeResultScreen extends StatelessWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.red.shade700.withOpacity(0.12),
+                    color: Color(0xFFD32F2F).withOpacity(0.12),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.red.shade700.withOpacity(0.5), width: 1.5),
+                    border: Border.all(color: Color(0xFFD32F2F).withOpacity(0.5), width: 1.5),
                   ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(Icons.warning_amber_rounded, color: Colors.red.shade700),
+                      const Icon(Icons.warning_amber_rounded, color: Color(0xFFD32F2F)),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(product.warning!,

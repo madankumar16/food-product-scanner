@@ -75,8 +75,8 @@ class HistoryTab extends StatelessWidget {
               ),
               TextButton.icon(
                 onPressed: () => _confirmClear(context, provider, true),
-                icon: const Icon(Icons.delete_sweep, color: Colors.red.shade700, size: 18),
-                label: const Text('Clear All', style: TextStyle(color: Colors.red.shade700)),
+                icon: const Icon(Icons.delete_sweep, color: Color(0xFFD32F2F), size: 18),
+                label: const Text('Clear All', style: TextStyle(color: Color(0xFFD32F2F))),
               ),
             ],
           ),
@@ -93,7 +93,7 @@ class HistoryTab extends StatelessWidget {
                 background: Container(
                   alignment: Alignment.centerRight,
                   padding: const EdgeInsets.only(right: 20),
-                  color: Colors.red.shade700,
+                  color: Color(0xFFD32F2F),
                   child: const Icon(Icons.delete, color: Colors.white),
                 ),
                 onDismissed: (direction) {
@@ -143,8 +143,8 @@ class FavoritesTab extends StatelessWidget {
               ),
               TextButton.icon(
                 onPressed: () => _confirmClear(context, provider, false),
-                icon: const Icon(Icons.favorite_border, color: Colors.red.shade700, size: 18),
-                label: const Text('Remove All', style: TextStyle(color: Colors.red.shade700)),
+                icon: const Icon(Icons.favorite_border, color: Color(0xFFD32F2F), size: 18),
+                label: const Text('Remove All', style: TextStyle(color: Color(0xFFD32F2F))),
               ),
             ],
           ),
@@ -161,7 +161,7 @@ class FavoritesTab extends StatelessWidget {
                 background: Container(
                   alignment: Alignment.centerRight,
                   padding: const EdgeInsets.only(right: 20),
-                  color: Colors.red.shade700,
+                  color: Color(0xFFD32F2F),
                   child: const Icon(Icons.heart_broken, color: Colors.white),
                 ),
                 onDismissed: (direction) {
@@ -190,13 +190,13 @@ class ProductListTile extends StatelessWidget {
     Color safetyColor;
     switch ((product.safetyColor ?? '').toUpperCase()) {
       case 'GREEN':
-        safetyColor = Colors.green.shade800;
+        safetyColor = Color(0xFF2E7D32);
         break;
       case 'YELLOW':
-        safetyColor = Colors.amber.shade900;
+        safetyColor = Color(0xFFFF6F00);
         break;
       case 'RED':
-        safetyColor = Colors.red.shade700;
+        safetyColor = Color(0xFFD32F2F);
         break;
       default:
         safetyColor = Colors.grey;
@@ -348,7 +348,7 @@ void _confirmClear(BuildContext context, ProductProvider provider, bool isHistor
             }
             Navigator.pop(context);
           },
-          child: const Text('Clear All', style: TextStyle(color: Colors.red.shade700)),
+          child: const Text('Clear All', style: TextStyle(color: Color(0xFFD32F2F))),
         ),
       ],
     ),

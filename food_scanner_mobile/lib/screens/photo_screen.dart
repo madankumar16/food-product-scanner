@@ -127,7 +127,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
               ),
               if (_error != null) ...[
                 const SizedBox(height: 12),
-                Text(_error!, style: TextStyle(color: Colors.red.shade700, fontWeight: FontWeight.w600)),
+                Text(_error!, style: TextStyle(color: Color(0xFFD32F2F), fontWeight: FontWeight.w600)),
               ],
             ],
           ),

@@ -332,7 +332,7 @@ class LastScanCard extends StatelessWidget {
       if (p.warning != null) {
         children.add(Padding(
           padding: const EdgeInsets.only(top: 12),
-          child: Text(p.warning!, style: TextStyle(color: Colors.red.shade700, fontWeight: FontWeight.bold)),
+          child: Text(p.warning!, style: TextStyle(color: Color(0xFFD32F2F), fontWeight: FontWeight.bold)),
         ));
       }
       if (p.isFood) {

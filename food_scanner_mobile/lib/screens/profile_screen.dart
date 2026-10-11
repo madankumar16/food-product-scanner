@@ -117,11 +117,11 @@ class ProfileScreen extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       decoration: BoxDecoration(
                         color: isEnabled
-                            ? Colors.red.shade700.withOpacity(0.1)
+                            ? Color(0xFFD32F2F).withOpacity(0.1)
                             : const Color(0xFFF2F4EE),
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
-                          color: isEnabled ? Colors.red.shade700.withOpacity(0.5) : Colors.transparent,
+                          color: isEnabled ? Color(0xFFD32F2F).withOpacity(0.5) : Colors.transparent,
                           width: 1,
                         ),
                       ),
@@ -132,7 +132,7 @@ class ProfileScreen extends StatelessWidget {
                             child: Text(
                               allergen,
                               style: TextStyle(
-                                color: isEnabled ? Colors.red.shade700 : Color(0xFF3D4A42),
+                                color: isEnabled ? Color(0xFFD32F2F) : Color(0xFF3D4A42),
                                 fontWeight: isEnabled ? FontWeight.bold : FontWeight.normal,
                                 fontSize: 14,
                               ),
@@ -140,7 +140,7 @@ class ProfileScreen extends StatelessWidget {
                           ),
                           Icon(
                             isEnabled ? Icons.warning_amber_rounded : Icons.check_circle_outline,
-                            color: isEnabled ? Colors.red.shade700 : Color(0xFF8A968E),
+                            color: isEnabled ? Color(0xFFD32F2F) : Color(0xFF8A968E),
                             size: 20,
                           ),
                         ],

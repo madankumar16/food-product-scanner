@@ -13,7 +13,7 @@ class NutriScoreWidget extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: Colors.grey.shade800,
+          color: Color(0xFF424242),
           borderRadius: BorderRadius.circular(8),
         ),
         child: const Text(

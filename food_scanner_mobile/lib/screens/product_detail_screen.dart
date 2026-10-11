@@ -26,13 +26,13 @@ class ProductDetailScreen extends StatelessWidget {
     Color safetyColor;
     switch ((product.safetyColor ?? '').toUpperCase()) {
       case 'GREEN':
-        safetyColor = Colors.green.shade800;
+        safetyColor = Color(0xFF2E7D32);
         break;
       case 'YELLOW':
-        safetyColor = Colors.amber.shade900;
+        safetyColor = Color(0xFFFF6F00);
         break;
       case 'RED':
-        safetyColor = Colors.red.shade700;
+        safetyColor = Color(0xFFD32F2F);
         break;
       default:
         safetyColor = Colors.grey;
@@ -54,7 +54,7 @@ class ProductDetailScreen extends StatelessWidget {
           IconButton(
             icon: Icon(
               isFav ? Icons.favorite : Icons.favorite_border,
-              color: isFav ? Colors.red.shade700 : Color(0xFF17221C),
+              color: isFav ? Color(0xFFD32F2F) : Color(0xFF17221C),
               size: 28,
             ),
             onPressed: () {
@@ -148,9 +148,9 @@ class ProductDetailScreen extends StatelessWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.red.shade700.withOpacity(0.12),
+                    color: Color(0xFFD32F2F).withOpacity(0.12),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.red.shade700.withOpacity(0.5), width: 1.5),
+                    border: Border.all(color: Color(0xFFD32F2F).withOpacity(0.5), width: 1.5),
                   ),
                   child: Text(product.warning!,
                       style: const TextStyle(color: Color(0xFF17221C), fontWeight: FontWeight.bold, height: 1.4)),
@@ -165,21 +165,21 @@ class ProductDetailScreen extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.red.shade700.withOpacity(0.12),
+                    color: Color(0xFFD32F2F).withOpacity(0.12),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.red.shade700.withOpacity(0.5), width: 1.5),
+                    border: Border.all(color: Color(0xFFD32F2F).withOpacity(0.5), width: 1.5),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.warning_amber_rounded, color: Colors.red.shade700, size: 24),
+                          const Icon(Icons.warning_amber_rounded, color: Color(0xFFD32F2F), size: 24),
                           const SizedBox(width: 8),
                           const Text(
                             'Dietary Warning!',
                             style: TextStyle(
-                              color: Colors.red.shade700,
+                              color: Color(0xFFD32F2F),
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
@@ -192,7 +192,7 @@ class ProductDetailScreen extends StatelessWidget {
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text('• ', style: TextStyle(color: Colors.red.shade700, fontSize: 16)),
+                                const Text('• ', style: TextStyle(color: Color(0xFFD32F2F), fontSize: 16)),
                                 Expanded(
                                   child: Text(
                                     alert,
@@ -296,7 +296,7 @@ class ProductDetailScreen extends StatelessWidget {
                   children: [
                     Icon(
                       isNonVeg ? Icons.restaurant : (isVeg ? Icons.eco : Icons.help_outline),
-                      color: isNonVeg ? Colors.deepOrange.shade700 : (isVeg ? Colors.green.shade800 : Color(0xFF4A5A50)),
+                      color: isNonVeg ? Color(0xFFE64A19) : (isVeg ? Color(0xFF2E7D32) : Color(0xFF4A5A50)),
                     ),
                     const SizedBox(width: 12),
                     const Text(
@@ -306,7 +306,7 @@ class ProductDetailScreen extends StatelessWidget {
                     Text(
                       vegStatus,
                       style: TextStyle(
-                        color: isNonVeg ? Colors.deepOrange.shade700 : (isVeg ? Colors.green.shade800 : Color(0xFF4A5A50)),
+                        color: isNonVeg ? Color(0xFFE64A19) : (isVeg ? Color(0xFF2E7D32) : Color(0xFF4A5A50)),
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                       ),
@@ -337,8 +337,8 @@ class ProductDetailScreen extends StatelessWidget {
                     children: product.allergens.map((allergen) {
                       return Chip(
                         label: Text(allergen),
-                        backgroundColor: Colors.red.shade700.withOpacity(0.25),
-                        labelStyle: const TextStyle(color: Colors.red.shade700, fontWeight: FontWeight.bold, fontSize: 12),
+                        backgroundColor: Color(0xFFD32F2F).withOpacity(0.25),
+                        labelStyle: const TextStyle(color: Color(0xFFD32F2F), fontWeight: FontWeight.bold, fontSize: 12),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       );
                     }).toList(),
@@ -352,7 +352,7 @@ class ProductDetailScreen extends StatelessWidget {
                   color: const Color(0xFFFDECEC), // Mild reddish-dark card
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   child: ListTile(
-                    leading: const Icon(Icons.warning_amber_rounded, color: Colors.red.shade700),
+                    leading: const Icon(Icons.warning_amber_rounded, color: Color(0xFFD32F2F)),
                     title: Text(ing, style: const TextStyle(color: Color(0xFF17221C), fontWeight: FontWeight.bold)),
                     subtitle: Text(conditions, style: const TextStyle(color: Color(0xFF3D4A42))),
                   ),
