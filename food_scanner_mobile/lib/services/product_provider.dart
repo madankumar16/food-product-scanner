@@ -72,16 +72,18 @@ class ProductProvider with ChangeNotifier {
 
   List<String> checkProductWarnings(Product product) {
     final List<String> warnings = [];
+    if (!product.isFood) return warnings; // diet and allergen checks only apply to food
+    final vegStatus = product.vegStatus ?? 'Not confirmed';
 
     // Check Dietary Suitability
-    final vegLower = product.vegStatus.toLowerCase();
+    final vegLower = vegStatus.toLowerCase();
     if (_dietaryPreference == 'vegan') {
       if (vegLower != 'vegan') {
-        warnings.add('Diet Alert: Product is not certified Vegan (Status: ${product.vegStatus})');
+        warnings.add('Diet Alert: Product is not certified Vegan (Status: $vegStatus)');
       }
     } else if (_dietaryPreference == 'vegetarian') {
       if (vegLower != 'vegan' && vegLower != 'vegetarian') {
-        warnings.add('Diet Alert: Product is not certified Vegetarian (Status: ${product.vegStatus})');
+        warnings.add('Diet Alert: Product is not certified Vegetarian (Status: $vegStatus)');
       }
     }
 

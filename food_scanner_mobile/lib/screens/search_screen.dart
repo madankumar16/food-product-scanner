@@ -29,8 +29,7 @@ class _SearchScreenState extends State<SearchScreen> {
     });
 
     try {
-      final apiService = ApiService();
-      final product = await apiService.scanBarcode(barcode.trim());
+      final product = await ApiService().scanCode(barcode.trim(), format: 'typed');
       
       // Save to history
       await provider.addToHistory(product);
@@ -50,7 +49,7 @@ class _SearchScreenState extends State<SearchScreen> {
         context: context,
         builder: (context) => AlertDialog(
           backgroundColor: const Color(0xFF1E293B),
-          title: const Text('Search Error', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          title: const Text('Lookup failed', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           content: Text(e.toString().replaceAll('Exception: ', ''), style: const TextStyle(color: Colors.white70)),
           actions: [
             TextButton(
@@ -79,7 +78,7 @@ class _SearchScreenState extends State<SearchScreen> {
         backgroundColor: const Color(0xFF1E293B),
         elevation: 0,
         title: const Text(
-          'Product Lookup',
+          'Lookup'
           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
       ),
@@ -91,7 +90,7 @@ class _SearchScreenState extends State<SearchScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Search Product by Barcode',
+                  'Type a code'
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 20,
@@ -100,7 +99,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  'Enter a global GTIN/EAN/UPC barcode number to query our Open Food Facts and Gemini AI analysis engine.',
+                  'Type a barcode number (EAN, UPC), an ISBN, or any text from a code. Products are looked up in Open Food Facts, Open Beauty Facts, Open Pet Food Facts, Open Products Facts and Open Library.',
                   style: TextStyle(color: Colors.white54, fontSize: 13, height: 1.4),
                 ),
                 const SizedBox(height: 24),
@@ -122,7 +121,7 @@ class _SearchScreenState extends State<SearchScreen> {
                           ),
                           prefixIcon: const Icon(Icons.search, color: Colors.white54),
                         ),
-                        keyboardType: TextInputType.number,
+                        keyboardType: TextInputType.text,
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -135,7 +134,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       onPressed: () {
                         _searchBarcode(_searchController.text, provider);
                       },
-                      child: const Text('Search', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      child: const Text('Check', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                     ),
                   ],
                 ),
@@ -145,9 +144,9 @@ class _SearchScreenState extends State<SearchScreen> {
                   style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold, fontSize: 14),
                 ),
                 const SizedBox(height: 8),
-                const BulletPoint(text: 'EAN barcodes usually consist of 13 digits.'),
-                const BulletPoint(text: 'UPC barcodes (popular in North America) consist of 12 digits.'),
-                const BulletPoint(text: 'Scans will be automatically cached for offline viewing on the Scans page.'),
+                const BulletPoint(text: 'EAN barcodes have 13 digits (8 on small packs); UPC barcodes have 12.'),
+                const BulletPoint(text: 'Books: type the 10- or 13-digit ISBN.'),
+                const BulletPoint(text: 'Scans are saved on this phone on the Scans page.'),
               ],
             ),
           ),
@@ -161,7 +160,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     CircularProgressIndicator(color: Color(0xFF38BDF8)),
                     SizedBox(height: 16),
                     Text(
-                      'Searching database...',
+                      'Checking...',
                       style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                   ],

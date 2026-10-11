@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Scan history — {{ site.name }}{% endblock %}
-{% block description %}Your recent scans and saved products. Stored only in this browser.{% endblock %}
+{% block description %}Your recent scans and saved items. Stored only in this browser.{% endblock %}
 
 {% block content %}
 <div class="wrap page-head">
@@ -13,23 +13,23 @@
         <section class="panel" aria-labelledby="recent-title">
             <h2 id="recent-title" class="h3">Recent scans</h2>
             <ul class="items" id="recent-list"></ul>
-            <p class="empty is-hidden" id="recent-empty">No scans yet. <a href="{{ url_for('index') }}">Scan a product</a>.</p>
+            <p class="empty is-hidden" id="recent-empty">No scans yet. <a href="{{ url_for('index') }}">Scan a code</a>.</p>
         </section>
         <section class="panel" aria-labelledby="fav-title">
-            <h2 id="fav-title" class="h3">Saved products</h2>
+            <h2 id="fav-title" class="h3">Saved</h2>
             <ul class="items" id="fav-list"></ul>
-            <p class="empty is-hidden" id="fav-empty">Nothing saved yet. Use "Save product" on a result.</p>
+            <p class="empty is-hidden" id="fav-empty">Nothing saved yet. Use "Save" on a result.</p>
         </section>
         <section class="panel" aria-labelledby="clear-title">
             <h2 id="clear-title" class="h3">Delete my data</h2>
-            <p>Remove all scans and saved products from this browser.</p>
+            <p>Remove all scans and saved items from this browser.</p>
             <button class="btn" type="button" id="clear-btn">Delete history</button>
             <p class="status-msg" id="clear-status" role="status" aria-live="polite"></p>
         </section>
     </div>
     <section class="panel" aria-labelledby="result-title" id="result-panel" tabindex="-1">
         <h2 id="result-title" class="h3">Details</h2>
-        <div id="result"><p class="muted">Choose a product to see its details.</p></div>
+        <div id="result"><p class="muted">Choose a scan to see its details.</p></div>
     </section>
 </div>
 {% endblock %}

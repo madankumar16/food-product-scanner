@@ -13,7 +13,8 @@ class ScannerScreen extends StatefulWidget {
 }
 
 class _ScannerScreenState extends State<ScannerScreen> {
-  final MobileScannerController _scannerController = MobileScannerController();
+  // No format list: reads every 1D barcode and 2D code (QR, Data Matrix, PDF417, Aztec...).
+  final MobileScannerController _scannerController = MobileScannerController(detectionSpeed: DetectionSpeed.noDuplicates);
   final TextEditingController _barcodeInputController = TextEditingController();
   bool _isLoading = false;
   bool _isFlashOn = false;
@@ -25,7 +26,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
     super.dispose();
   }
 
-  Future<void> _processBarcode(String barcode, ProductProvider provider) async {
+  Future<void> _processBarcode(String barcode, ProductProvider provider, {String? format}) async {
     if (_isLoading || barcode.trim().isEmpty) return;
 
     setState(() {
@@ -36,15 +37,13 @@ class _ScannerScreenState extends State<ScannerScreen> {
       // Pause scanner temporarily
       _scannerController.stop();
 
-      // Retrieve backend base URL
-      final apiService = ApiService(); // Uses default http://10.0.2.2:5000
-      final product = await apiService.scanBarcode(barcode.trim());
+      final product = await ApiService().scanCode(barcode, format: format ?? 'typed');
 
       // Save to local scan history
       await provider.addToHistory(product);
 
       if (!mounted) return;
-      
+
       // Clear manual input
       _barcodeInputController.clear();
 
@@ -61,7 +60,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
         context: context,
         builder: (context) => AlertDialog(
           backgroundColor: const Color(0xFF1E293B),
-          title: const Text('Scan Failed', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          title: const Text('Scan failed', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           content: Text(e.toString().replaceAll('Exception: ', ''), style: const TextStyle(color: Colors.white70)),
           actions: [
             TextButton(
@@ -94,10 +93,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
           MobileScanner(
             controller: _scannerController,
             onDetect: (capture) {
-              final List<Barcode> barcodes = capture.barcodes;
-              if (barcodes.isNotEmpty && barcodes.first.rawValue != null) {
-                final String code = barcodes.first.rawValue!;
-                _processBarcode(code, provider);
+              final barcodes = capture.barcodes.where((b) => (b.rawValue ?? '').isNotEmpty).toList();
+              if (barcodes.isNotEmpty) {
+                _processBarcode(barcodes.first.rawValue!, provider, format: barcodes.first.format.name);
               }
             },
           ),
@@ -106,7 +104,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
           Container(
             color: Colors.black.withOpacity(0.5),
           ),
-          
+
           // Clear scanning viewport cut-out
           Center(
             child: Container(
@@ -123,16 +121,16 @@ class _ScannerScreenState extends State<ScannerScreen> {
           // 3. Scan Interface UI Controls
           SafeArea(
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.between,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 // Top control row
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.between,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
-                        'Align Barcode to Scan',
+                        'Scan before use',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 18,
@@ -166,7 +164,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const Text(
-                        'Simulator / Manual Barcode Input',
+                        'Or type a barcode number, ISBN or any text',
                         style: TextStyle(
                           color: Colors.white70,
                           fontSize: 14,
@@ -181,7 +179,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                               controller: _barcodeInputController,
                               style: const TextStyle(color: Colors.white),
                               decoration: InputDecoration(
-                                hintText: 'Enter barcode number...',
+                                hintText: 'e.g. 8901058000290',
                                 hintStyle: const TextStyle(color: Colors.white30),
                                 filled: true,
                                 fillColor: const Color(0xFF0F172A),
@@ -191,7 +189,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                                   borderSide: BorderSide.none,
                                 ),
                               ),
-                              keyboardType: TextInputType.number,
+                              keyboardType: TextInputType.text,
                             ),
                           ),
                           const SizedBox(width: 10),
@@ -206,22 +204,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
                             },
                             child: const Icon(Icons.arrow_forward, color: Colors.white),
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      
-                      // Quick test codes
-                      const Text(
-                        'Quick Simulators:',
-                        style: TextStyle(color: Colors.white38, fontSize: 12),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          _buildQuickTestButton('Nutella', '3017620425035', provider),
-                          _buildQuickTestButton('Coca-Cola', '5449000000996', provider),
-                          _buildQuickTestButton('Oreo', '7622210449283', provider),
                         ],
                       ),
                     ],
@@ -242,7 +224,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                     CircularProgressIndicator(color: Color(0xFF38BDF8)),
                     SizedBox(height: 16),
                     Text(
-                      'Identifying product...',
+                      'Checking...',
                       style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                   ],
@@ -250,21 +232,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
               ),
             ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildQuickTestButton(String label, String code, ProductProvider provider) {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF334155),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-      onPressed: () => _processBarcode(code, provider),
-      child: Text(
-        label,
-        style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold),
       ),
     );
   }

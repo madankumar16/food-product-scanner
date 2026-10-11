@@ -15,6 +15,7 @@ sys.path.insert(0, str(ROOT))
 os.environ.pop("GEMINI_API_KEY", None)
 
 import analysis  # noqa: E402
+import codes  # noqa: E402
 import app as webapp  # noqa: E402
 import nutriscore as ns  # noqa: E402
 import off_client  # noqa: E402
@@ -131,12 +132,16 @@ def test_barcode_scan_returns_real_data_in_mobile_app_shape(client):
 
 
 def test_unknown_product_is_reported_not_faked(client):
-    with off_returns({"status": 0}):
-        r = client.post("/scan", json={"barcode": "1234567890123"})
-    assert r.status_code == 404
-    body = json.dumps(r.get_json())
-    assert "isn't in the Open Food Facts database" in body
-    for fake in ("Smart Cola", "Water", "Natural Flavors", "SmartBrand"):
+    with off_returns({"status": 0}) as get:
+        r = client.post("/scan", json={"barcode": "1234567890128"})
+    data = r.get_json()
+    assert r.status_code == 200 and data["kind"] == "code"
+    assert "dashboard" not in data                      # no veg status or scores for an unknown item
+    assert "isn't in Open Food Facts, Open Beauty Facts" in data["notes"][0]
+    assert ["Check digit", "Valid"] in data["code"]["facts"]
+    assert get.call_count == 4                          # food, beauty, pet food, products
+    body = json.dumps(data)
+    for fake in ("Smart Cola", "Water", "Natural Flavors", "SmartBrand", "Vegetarian"):
         assert fake not in body
 
 
@@ -147,17 +152,111 @@ def test_database_down_gives_503(client):
     assert r.status_code == 503
 
 
-@pytest.mark.parametrize("bad", ["", "12", "abc12345", "<script>alert(1)</script>", "1" * 20, "../../etc/passwd"])
-def test_bad_barcodes_rejected(client, bad):
+@pytest.mark.parametrize("bad", ["", "   ", None, ["x"], "x" * 5000])
+def test_empty_or_oversized_codes_rejected(client, bad):
     with off_returns() as get:
-        r = client.post("/scan", json={"barcode": bad})
+        r = client.post("/scan", json={"code": bad})
     assert r.status_code == 400
     assert get.call_count == 0
-    assert "<script>" not in r.get_data(as_text=True)
+
+
+@pytest.mark.parametrize("text", ["12", "abc12345", "<script>alert(1)</script>", "1" * 20, "../../etc/passwd"])
+def test_non_product_codes_are_decoded_not_looked_up(client, text):
+    with off_returns() as get:
+        r = client.post("/scan", json={"code": text, "format": "CODE_128"})
+    data = r.get_json()
+    assert r.status_code == 200 and data["kind"] == "code"
+    assert get.call_count == 0
+    assert data["code"]["text"] == text                 # shown as text by the page, never as HTML
+
+
+def test_product_number_with_wrong_check_digit_is_not_looked_up(client):
+    with off_returns() as get:
+        data = client.post("/scan", json={"code": "8901058000291"}).get_json()
+    assert get.call_count == 0 and data["title"] == "Number"
+    assert "last digit doesn't match" in data["notes"][0]
+
+
+def test_non_food_product_comes_from_its_own_database(client):
+    beauty = {"status": 1, "product": {"product_name": "Hand cream", "brands": "Brand", "quantity": "75 ml",
+              "categories_tags": ["en:creams"], "image_front_url": "https://images.openbeautyfacts.org/x.jpg"}}
+
+    def fake_get(url, **kw):
+        return FakeResp(200, beauty if "openbeautyfacts" in url else {"status": 0})
+
+    with mock.patch("off_client.requests.get", side_effect=fake_get):
+        data = client.post("/scan", json={"code": "8410757001090", "format": "EAN_13"}).get_json()
+    assert data["kind"] == "product" and data["source"] == "open_beauty_facts"
+    assert data["item"]["database"] == "Open Beauty Facts" and data["item"]["title"] == "Hand cream"
+    assert ["Quantity", "75 ml"] in data["item"]["facts"]
+    assert data["item"]["image_url"].startswith("https://images.openbeautyfacts.org/")
+    assert ["Scanned as", "EAN-13"] in data["code"]["facts"]
+
+
+def test_isbn_is_looked_up_in_open_library(client):
+    book = {"ISBN:9780140449136": {"title": "Crime and punishment", "authors": [{"name": "F. Dostoevsky"}],
+                                   "publishers": [{"name": "Penguin"}], "publish_date": "2003", "number_of_pages": 671,
+                                   "url": "http://openlibrary.org/books/OL1M/x", "cover": {"medium": "https://covers.openlibrary.org/b/id/1-M.jpg"}}}
+    with mock.patch("off_client.requests.get", return_value=FakeResp(200, book)) as get:
+        data = client.post("/scan", json={"code": "0140449132"}).get_json()   # ISBN-10 is converted
+    assert data["kind"] == "book" and data["item"]["title"] == "Crime and punishment"
+    assert ["Pages", "671"] in data["item"]["facts"]
+    assert data["item"]["url"].startswith("https://openlibrary.org/")
+    assert "openlibrary.org" in get.call_args[0][0]
+
+
+def test_store_internal_codes_are_explained_not_looked_up(client):
+    code = next(c for c in ("20012340000" + str(d) + "0" for d in range(10)) if codes.gtin_check_ok(c[:12] + c[12]))
+    with off_returns() as get:
+        data = client.post("/scan", json={"code": code}).get_json()
+    assert get.call_count == 0 and "shop's own number" in data["notes"][0]
+
+
+def test_gs1_datamatrix_shows_expiry_and_warns_when_expired(client):
+    with off_returns():
+        data = client.post("/scan", json={"code": "(01)08901058000290(17)240131(10)AB12", "format": "DATA_MATRIX"}).get_json()
+    facts = data["code"]["facts"]
+    assert ["Expiry date", "31 Jan 2024"] in facts and ["Batch / lot", "AB12"] in facts
+    assert data["warning"].startswith("Expired on 31 Jan 2024")
+    assert data["kind"] == "food"                       # the product number was looked up too
+
+
+@pytest.mark.parametrize("text,title,fact", [
+    ("upi://pay?pa=shop@okaxis&pn=Ravi%20Stores&am=150&cu=INR", "UPI payment request", ["Pay to (UPI ID)", "shop@okaxis"]),
+    ("WIFI:T:WPA;S:Home Net;P:pa\\;ss;;", "Wi-Fi network", ["Password", "pa;ss"]),
+    ("https://example.com/menu", "Web link", ["Website", "example.com"]),
+    ("BEGIN:VCARD\nFN:Asha Rao\nTEL:+919876543210\nEND:VCARD", "Contact card", ["Phone", "+919876543210"]),
+    ("mailto:help@example.com?subject=Hi", "Email", ["Subject", "Hi"]),
+    ("tel:+911234567890", "Phone number", ["Number", "+911234567890"]),
+    ("SMSTO:+911234567890:Hello", "Text message", ["Message", "Hello"]),
+    ("geo:12.97,77.59", "Map location", ["Latitude", "12.97"]),
+    ("hello world", "Text", ["Text", "hello world"]),
+])
+def test_qr_contents_are_decoded(client, text, title, fact):
+    data = client.post("/scan", json={"code": text, "format": "QR_CODE"}).get_json()
+    assert data["title"] == title and fact in data["content"]["facts"]
+
+
+def test_upi_and_links_carry_warnings(client):
+    upi = client.post("/scan", json={"code": "upi://pay?pa=a@b"}).get_json()
+    plain = client.post("/scan", json={"code": "http://example.com"}).get_json()
+    assert "never gives you money" in upi["warning"]
+    assert "not secure" in plain["warning"]
+
+
+def test_gs1_digital_link_is_looked_up(client):
+    with off_returns() as get:
+        data = client.post("/scan", json={"code": "https://id.gs1.org/01/08901058000290"}).get_json()
+    assert data["kind"] == "food" and "8901058000290.json" in get.call_args[0][0]
+
+
+def test_upce_is_expanded():
+    assert codes.upce_to_upca("04252614") == "042100005264"
+    assert codes.describe_gtin("04252614", "UPC-E")["lookup"] == "0042100005264"
 
 
 def test_errors_never_leak_tracebacks(client):
-    with mock.patch("food_scanner.scan_barcode", side_effect=RuntimeError("secret internal detail")):
+    with mock.patch("food_scanner.scan_code", side_effect=RuntimeError("secret internal detail")):
         r = client.post("/scan", json={"barcode": "8901058000290"})
     assert r.status_code == 500
     assert "secret internal detail" not in r.get_data(as_text=True)
@@ -183,7 +282,7 @@ def test_photo_without_barcode_and_no_ai_is_honest(client):
     with open(FIX / "blank.jpg", "rb") as fh:
         r = client.post("/scan", data={"image": (fh, "photo.jpg")}, content_type="multipart/form-data")
     assert r.status_code == 422
-    assert "No barcode found" in r.get_json()["error"]
+    assert "No barcode or QR code found" in r.get_json()["error"]
 
 
 def test_non_image_upload_rejected(client):
