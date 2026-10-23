@@ -2,6 +2,14 @@
 
 Scan any barcode or QR code and see what it is, before you use it. Works on the web (Flask, deployed on Vercel) and from the Flutter app in `food_scanner_mobile/`.
 
+**Live:** https://fopack-scanner.vercel.app
+
+<p align="center">
+  <img src="docs/screenshots/web-home.png" alt="Scan Before Use home page in a desktop browser" width="640">
+  <!-- Phone app screenshot: add docs/screenshots/app-scan.png and show it here, e.g.
+       <img src="docs/screenshots/app-scan.png" alt="Scan Before Use phone app" width="240"> -->
+</p>
+
 - **Food**: ingredients, possible allergens, vegetarian status (Indian convention: egg is non-veg), Nutri-Score (2023 algorithm) and NOVA group, from [Open Food Facts](https://world.openfoodfacts.org).
 - **Other products**: cosmetics, pet food and household items from [Open Beauty Facts](https://world.openbeautyfacts.org), [Open Pet Food Facts](https://world.openpetfoodfacts.org) and [Open Products Facts](https://world.openproductsfacts.org).
 - **Books** (ISBN) from [Open Library](https://openlibrary.org).
@@ -11,6 +19,34 @@ Scan any barcode or QR code and see what it is, before you use it. Works on the 
 - **Photos** are checked for a barcode on the server (zxing-cpp). If `GEMINI_API_KEY` is set and there's no barcode, Gemini reads the label text. Without a key the site runs with no AI at all.
 - **Nothing is faked.** Unknown products, missing ingredients and unconfirmed veg status are shown as such. The server never opens links found in codes.
 - **No accounts, no cookies, no server-side storage.** History and saved products live in the visitor's browser.
+
+## How it works
+
+```mermaid
+flowchart LR
+    web["Browser<br/>templates/ + static/js"] -->|"POST /scan<br/>(code text or photo)"| app
+    phone["Flutter app<br/>food_scanner_mobile/"] -->|"POST /scan"| app
+    subgraph server["Flask server (app.py), on Vercel"]
+        app["app.py<br/>routes, rate limits, security headers"] --> fs["food_scanner.py<br/>scan_code / scan_image"]
+        app --> ns["nutriscore.py<br/>Nutri-Score calculator"]
+        app --> pdf["report_pdf.py<br/>PDF report"]
+        fs --> codes["codes.py<br/>GS1, ISBN, QR contents<br/>(read locally, links never opened)"]
+        fs --> zx["zxing-cpp<br/>barcode in photo"]
+        fs --> an["analysis.py<br/>ingredients, allergens, veg"]
+        fs --> ns
+        fs --> off["off_client.py"]
+        fs --> ai["ai_label.py"]
+    end
+    off --> offdb[("Open Food / Beauty / Pet Food /<br/>Products Facts APIs")]
+    off --> ol[("Open Library API<br/>(books)")]
+    ai -. "only if GEMINI_API_KEY is set<br/>and the photo has no barcode" .-> gem[("Google Gemini API")]
+```
+
+1. The browser or phone app sends the scanned text (or a photo) to `POST /scan`.
+2. `food_scanner.py` reads photos with zxing-cpp, then `codes.py` works out what the code is (GTIN/ISBN, GS1 data with expiry and batch, or QR content such as links, UPI and Wi-Fi).
+3. Product numbers are looked up through `off_client.py` in the Open Food Facts family of databases, or Open Library for books.
+4. For food, `analysis.py` checks ingredients, allergens and veg status, and `nutriscore.py` works out the Nutri-Score.
+5. Gemini is used only when a key is set and a photo has no readable barcode. Without a key the site runs with no AI.
 
 ## Run locally
 
