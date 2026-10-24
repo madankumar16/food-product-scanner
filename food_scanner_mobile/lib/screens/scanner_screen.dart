@@ -194,7 +194,7 @@ class _ScannerScreenState extends State<ScannerScreen> with WidgetsBindingObserv
                       top: 20,
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(99)),
+                        decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(10)),
                         child: const Row(children: [
                           Icon(Icons.circle, color: Color(0xFFEF5350), size: 12),
                           SizedBox(width: 8),
@@ -225,7 +225,7 @@ class _ScannerScreenState extends State<ScannerScreen> with WidgetsBindingObserv
                       _busy
                           ? 'Checking...'
                           : live
-                              ? 'Hold steady — scanning automatically'
+                              ? 'Hold steady. Scanning automatically.'
                               : 'Press Scan to turn on the camera',
                       textAlign: TextAlign.center,
                       style: const TextStyle(color: Color(0xFFE8EFE9), fontSize: 16),

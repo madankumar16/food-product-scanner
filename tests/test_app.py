@@ -98,6 +98,15 @@ def test_pages_have_title_description_favicon(client, path):
     assert "unpkg.com" not in html and "googleapis" not in html
 
 
+@pytest.mark.parametrize("path", ["/", "/number", "/photo", "/result", "/settings", "/history", "/nutri-score",
+                                  "/privacy", "/terms", "/cookies", "/refunds", "/nope"])
+def test_pages_have_no_em_dashes_or_placeholder_text(client, path):
+    html = client.get(path).get_data(as_text=True)
+    assert "—" not in html, path
+    for junk in ("Lorem", "TODO", "[Product", "Made with AI"):
+        assert junk not in html, (path, junk)
+
+
 def test_nav_has_at_most_five_links(client):
     html = client.get("/").get_data(as_text=True)
     nav = html.split('id="nav-links"')[1].split("</ul>")[0]

@@ -1,11 +1,11 @@
 {% extends "base.html" %}
-{% block title %}Scan from a photo — {{ site.name }}{% endblock %}
+{% block title %}Scan from a photo | {{ site.name }}{% endblock %}
 {% block description %}Take or choose a photo of a barcode or QR code{% if ai_enabled %} or ingredients label{% endif %} and check what it is. Photos are not stored.{% endblock %}
 
 {% block content %}
 <div class="page-head">
     <h1>Photo</h1>
-    <p class="lead">Take a photo of a barcode or QR code{% if ai_enabled %}, or of the ingredients label{% endif %}. Our server reads small or blurry codes better than the live camera.</p>
+    <p class="lead">Take a photo of a barcode or QR code{% if ai_enabled %}, or of the ingredients label{% endif %}. Try this if the live camera can't read a code.</p>
 </div>
 
 <section class="panel" aria-labelledby="photo-title">

@@ -323,7 +323,7 @@ class ProductDetailScreen extends StatelessWidget {
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20),
                 child: Text(
-                  '⚠️ Health Alerts',
+                  'Health alerts',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF17221C)),
                 ),
               ),
@@ -365,7 +365,7 @@ class ProductDetailScreen extends StatelessWidget {
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 20),
               child: Text(
-                '📝 Ingredients',
+                'Ingredients',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF17221C)),
               ),
             ),
@@ -409,7 +409,7 @@ class ProductDetailScreen extends StatelessWidget {
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20),
                 child: Text(
-                  '🤖 AI Expert Summary',
+                  'Label summary',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF17221C)),
                 ),
               ),

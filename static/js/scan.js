@@ -141,7 +141,7 @@
         cameraBox.classList.toggle('live', on);
         livePill.classList.toggle('is-hidden', !on);
         cameraLabel.textContent = on ? 'Stop' : 'Scan';
-        hint.textContent = on ? 'Hold steady — scanning automatically' : 'Press Scan to turn on the camera';
+        hint.textContent = on ? 'Hold steady. Scanning automatically.' : 'Press Scan to turn on the camera';
         if (!on) { torchBtn.classList.add('is-hidden'); torchOn = false; torchBtn.setAttribute('aria-pressed', 'false'); }
     }
 

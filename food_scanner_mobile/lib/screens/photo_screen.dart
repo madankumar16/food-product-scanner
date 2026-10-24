@@ -69,7 +69,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
       children: [
         const Text('Photo', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppColors.ink)),
         const SizedBox(height: 4),
-        const Text('Take a photo of a barcode or QR code. Our server reads small or blurry codes better than the live camera.',
+        const Text('Take a photo of a barcode or QR code. Try this if the live camera can\'t read a code.',
             style: TextStyle(color: AppColors.text2, fontSize: 16)),
         const SizedBox(height: 20),
         Container(

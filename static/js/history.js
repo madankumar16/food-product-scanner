@@ -23,7 +23,7 @@
             panel.focus();
         });
         return el('li', {}, [
-            img ? el('img', { src: img, alt: '', width: '56', height: '56', loading: 'lazy', referrerpolicy: 'no-referrer' }) : el('div', { class: 'no-photo', text: '—' }),
+            img ? el('img', { src: img, alt: '', width: '56', height: '56', loading: 'lazy', referrerpolicy: 'no-referrer' }) : el('div', { class: 'no-photo', 'aria-hidden': 'true' }),
             el('div', {}, [el('div', { class: 'name', text: title }),
                            el('div', { class: 'meta', text: [kind, when].filter(Boolean).join(' · ') })]),
             btn

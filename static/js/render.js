@@ -1,5 +1,5 @@
 // Safe rendering of scan results and on-device history.
-// Every value is inserted with textContent — never as HTML — so product data
+// Every value is inserted with textContent, never as HTML, so product data
 // from any source can't run code in the page.
 window.FPS = (function () {
     'use strict';
