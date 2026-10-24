@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Cookie Policy — {{ site.name }}{% endblock %}
+{% block title %}Cookie Policy | {{ site.name }}{% endblock %}
 {% block description %}{{ site.name }} uses no cookies. Here's what is stored in your browser instead.{% endblock %}
 
 {% block content %}
@@ -8,13 +8,16 @@
     <p class="muted">Last updated {{ site.policy_date }}</p>
     <p>{{ site.name }} sets <strong>no cookies</strong> of any kind: no analytics, advertising or tracking.</p>
 
+    <h2>Why there is no "accept cookies" choice</h2>
+    <p>Consent is needed for cookies or storage that aren't essential, such as analytics or advertising. We use none. The only thing stored is the history you create yourself, which the site needs to show it to you. The notice at the bottom of the page tells you this once.</p>
+
     <h2>Browser storage</h2>
     <p>Your browser's local storage keeps, on your device only:</p>
     <ul>
         <li>your recent scans and saved items (up to 50), and</li>
         <li>that you closed the notice about this policy.</li>
     </ul>
-    <p>This is never sent to us. Delete it on the <a href="{{ url_for('history') }}">History page</a> or by clearing your browser's site data.</p>
+    <p>This is never sent to us. Delete it with <strong>Delete my scans</strong> on the <a href="{{ url_for('settings_page') }}">Settings page</a>, or by clearing your browser's site data.</p>
 
     <h2>Contact</h2>
     {% include "legal/_contact.html" %}

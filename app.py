@@ -1,5 +1,5 @@
 """
-Scan Before Use — Flask app (runs on Vercel, Docker or locally).
+Scan Before Use: Flask app (runs on Vercel, Docker or locally).
 
 All configuration comes from environment variables; see .env.example.
 The site stores no personal data: scan history lives in the visitor's own
@@ -50,7 +50,7 @@ SITE = {
     "email": os.environ.get("CONTACT_EMAIL", "").strip(),
     "phone": os.environ.get("CONTACT_PHONE", "").strip(),
     "address": os.environ.get("BUSINESS_ADDRESS", "").strip(),
-    "policy_date": "11 October 2026",
+    "policy_date": "24 October 2026",
 }
 ALLOWED_ORIGINS = {o.strip().rstrip("/") for o in os.environ.get("ALLOWED_ORIGINS", "").split(",") if o.strip()}
 

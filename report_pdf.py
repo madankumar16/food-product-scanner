@@ -111,10 +111,10 @@ def build_pdf(result: Dict[str, Any], site_name: str) -> bytes:
         story.append(Paragraph("<b>Warning:</b> " + _t(result["warning"], 300), warn))
 
     rows = [
-        ["Barcode", _t(off.get("barcode") or "—", 20)],
-        ["Vegetarian status", f"{_t(d.get('Veg Status'), 40)} — {_t(d.get('Veg Reason'), 120)}"],
+        ["Barcode", _t(off.get("barcode") or "Not available", 20)],
+        ["Vegetarian status", f"{_t(d.get('Veg Status'), 40)}: {_t(d.get('Veg Reason'), 120)}"],
         ["Nutri-Score", _t(off.get("nutriscore") or "Not enough data", 20)],
-        ["NOVA group", _t(off.get("nova_group") or "—", 5)],
+        ["NOVA group", _t(off.get("nova_group") or "Not available", 15)],
         ["Ingredient score", f"{_t(d.get('Safety Score'))}/100" if d.get("Safety Score") is not None else "Not available"],
     ]
     table = Table([[Paragraph(f"<b>{k}</b>", body), Paragraph(v, body)] for k, v in rows],
